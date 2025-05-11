@@ -68,6 +68,7 @@
       </div>
     </div>
 
-    <script src="../asset/registration_validation.js"></script>
+    <script src="..\..\assests\js\validation.js">
+    </script>
   </body>
 </html>
