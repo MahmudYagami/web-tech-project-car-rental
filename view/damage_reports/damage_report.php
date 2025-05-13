@@ -79,8 +79,8 @@
   </style>
 </head>
 <body>
-
-  <header>
+  <form id="damageReportForm" action="..\..\control\login_check.php" method="POST" enctype="multipart/form-data">
+   <header>
     <h1>Vehicle Damage Report</h1>
   </header>
 
@@ -111,6 +111,7 @@
       <button class="submit-btn">Submit Report</button>
     </section>
   </main>
-
+</form>
+<script src="..\..\assests\js\dmg_report_validation.js"></script>
 </body>
 </html>

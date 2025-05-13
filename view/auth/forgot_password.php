@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="wrapper">
-        <form action="">
+        <form action="..\..\control\firget_pass_check.php" method="POST">
             <div class="input-box">
                 <input type="email" name="email" placeholder="Email" id="email" required >
                 <i class='bx bxs-user'></i>
@@ -30,6 +30,6 @@
         </form>
     </div>
     
-    
+    <script src="..\..\assests\js\forget_pass_Valida.js"></script>
 </body>
 </html>
