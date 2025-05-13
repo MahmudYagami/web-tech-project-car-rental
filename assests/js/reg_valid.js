@@ -100,6 +100,6 @@ document.getElementById("submit-btn").addEventListener("click", function (e) {
   generalMsg.innerText = "Registration successful! Redirecting...";
   generalMsg.style.color = "green";
 setTimeout(() => {
-  document.getElementById("registration-form").submit(); // This sends data to PHP!
+  document.getElementById("registration-form").submit();
 }, 1000);
 });
