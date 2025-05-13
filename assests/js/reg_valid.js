@@ -99,7 +99,7 @@ document.getElementById("submit-btn").addEventListener("click", function (e) {
   // All good
   generalMsg.innerText = "Registration successful! Redirecting...";
   generalMsg.style.color = "green";
-  setTimeout(() => {
-    window.location.replace("login.php");
-  }, 1000);
+setTimeout(() => {
+  document.getElementById("registration-form").submit(); // This sends data to PHP!
+}, 1000);
 });

@@ -9,7 +9,7 @@
   <body>
     <div class="form-container">
       <h1>Registration</h1>
-      <form id="registration-form">
+      <form id="registration-form" action="..\..\control\register_validation.php" method="POST">
         <label for="firstname">First Name:</label>
         <input type="text" id="firstname" name="first_name" required />
         <div id="firstname-message" class="message"></div>
@@ -65,7 +65,7 @@
         <!-- General feedback (e.g. all fields required, or success) -->
         <div id="general-message" class="message"></div>
 
-        <button type="button" id="submit-btn">Sign Up</button>
+        <button type="submit" id="submit-btn">Sign Up</button>
       </form>
 
       <!-- Login Link -->

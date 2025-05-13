@@ -6,7 +6,6 @@
     <title>Login</title>
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="..\..\assests\css\login_style.css">
-    <script src="../asset/login_check.js" defer></script>  
 
      <style>
     .switch {
@@ -55,12 +54,23 @@
     flex-direction: row;
     justify-content:space-between;
     }
+    .message {
+    font-size: 13px;
+    color: red;
+    margin-top: 4px;
+    }
+    input.error {
+    border: 2px solid red;
+    }
+    input.success {
+    border: 2px solid green;
+    }
   </style>
 </head>
 <body>
     
     <div class="wrapper">
-        <form id="login-form">
+        <form id="login-form" action="..\..\control\login_check.php" method="POST">
             <h1>Login</h1>
             <div class="input-box">
                 <input type="email" id="email" name="email" placeholder="Email" required>
@@ -82,11 +92,13 @@
                             <span class="remember-text">Remember me</span>
                     </div>
             </div>
-            <button type="button" id="submit-btn" class="btn">Login</button> 
+            <button type="submit" id="submit-btn" class="btn">Login</button> 
             <div class="register-link">
                 <p>Don't have an account? <a href="register.php">Register</a></p>
             </div>
         </form>
     </div>
+<script src="..\..\assests\js\login_valid.js"></script>
+    
 </body>
 </html>
