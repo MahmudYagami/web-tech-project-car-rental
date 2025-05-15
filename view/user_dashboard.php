@@ -1,50 +1,11 @@
-  body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 40px;
-    }
-    .dashboard {
-      max-width: 1200px;
-      margin: auto;
-    }
-    .card {
-      background: white;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .card h3 {
-      margin-bottom: 10px;
-    }
-    .stats {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-    .stat-box {
-      flex: 1;
-      min-width: 250px;
-      margin: 10px;
-      padding: 15px;
-      background: #ffe0e0;
-      border-left: 6px solid #dc3545;
-      border-radius: 5px;
-    }
-    .quick-actions a {
-      display: inline-block;
-      margin-right: 10px;
-      padding: 10px 15px;
-      background: #dc3545;
-      color: white;
-      border-radius: 5px;
-      text-decoration: none;
-    }
-    .quick-actions a:hover {
-      background: #a92828;
-    }
-
-     /* dashboard_style.css */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Dashboard</title>
+  <link rel="stylesheet" href="../../assets/css/dashboard_style.css">
+  <style>
+    /* dashboard_style.css */
 
 body {
   margin: 0;
@@ -144,3 +105,41 @@ body {
   font-size: 16px;
   line-height: 2.2;
 }
+
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <nav class="sidebar">
+      <ul>
+        <li class="active">My Account</li>
+        <li>My Addresses</li>
+        <li>My Offers</li>
+        <li>My Promotions</li>
+        <li>Free Services</li>
+        <li>Sheba Credit</li>
+      </ul>
+    </nav>
+
+    <div class="main-content">
+      <div class="breadcrumb">Home &gt; <span>My Account</span></div>
+      <div class="profile-section">
+        <h2>Personal Info</h2>
+        <div class="profile-card">
+          <div class="avatar-container">
+            <img src="../../assets/images/avatar-placeholder.png" alt="Avatar">
+            <button class="edit-btn">✎</button>
+          </div>
+          <div class="info-fields">
+            <div><strong>Name:</strong> Akid Mahmud</div>
+            <div><strong>Phone:</strong> +8801840193060</div>
+            <div><strong>Email:</strong> N/A</div>
+            <div><strong>Date of Birth:</strong> N/A</div>
+            <div><strong>Gender:</strong> N/A</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

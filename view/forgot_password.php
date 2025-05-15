@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="wrapper">
-        <form action="..\..\control\firget_pass_check.php" method="POST">
+        <form action="..\..\controller\firget_pass_check.php" method="POST">
             <div class="input-box">
                 <input type="email" name="email" placeholder="Email" id="email" required >
                 <i class='bx bxs-user'></i>

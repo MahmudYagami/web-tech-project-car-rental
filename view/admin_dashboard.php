@@ -23,6 +23,9 @@
     <div class="stat-box">
       <strong>Revenue This Month:</strong> $12,500
     </div>
+    <div class="stat-box">
+      <strong>Damege Report:</strong> 2
+    </div>
   </div>
 
   <div class="card">
@@ -31,6 +34,7 @@
       <a href="..\roles\role_assigment.php">Manage Users</a>
       <a href="../cars/manage_cars.php">Manage Cars</a>
       <a href="../bookings/manage_bookings.php">Manage Bookings</a>
+      <a href="../bookings/manage_bookings.php">Damege Report</a>
     </div>
   </div>
 </div>
