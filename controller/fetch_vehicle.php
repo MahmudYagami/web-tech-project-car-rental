@@ -1,6 +1,6 @@
 <?php
 
-require_once 'db.php';
+require_once '../model/db.php';
 
 $sql = "SELECT * FROM vehicles WHERE availability = 1";
 $result = $conn->query($sql);

@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['email'])) {
+    header("Location: login.php");
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="..\..\assests\css\login_style.css">
+    <link rel="stylesheet" href="..\assests\css\login_style.css">
 
      <style>
     .switch {
@@ -70,7 +79,7 @@
 <body>
     
     <div class="wrapper">
-        <form id="login-form" action="..\..\control\login_check.php" method="POST">
+        <form id="login-form" action="..\controller\login_check.php" method="POST">
             <h1>Login</h1>
             <div class="input-box">
                 <input type="email" id="email" name="email" placeholder="Email" required>
@@ -98,7 +107,7 @@
             </div>
         </form>
     </div>
-<script src="..\..\assests\js\login_valid.js"></script>
+<script src="..\assests\js\login_valid.js"></script>
     
 </body>
 </html>

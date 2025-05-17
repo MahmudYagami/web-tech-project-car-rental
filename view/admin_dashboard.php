@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="..\..\assests\css\dashboard_style.css">
+  <link rel="stylesheet" href="..\assests\css\dashboard_style.css">
 </head>
 <body>
 

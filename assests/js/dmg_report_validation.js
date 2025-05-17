@@ -1,42 +1,112 @@
-document.querySelector(".submit-btn").addEventListener("click", function (e) {
-  e.preventDefault(); // prevent default submission
+// Vehicle Canvas
+const vehicleCanvas = document.getElementById('vehicleCanvas');
+const vehicleCtx = vehicleCanvas.getContext('2d');
+let isDrawing = false;
+let vehicleImage = new Image();
 
-  const photoInput = document.getElementById("photoUpload");
-  const signatureInput = document.getElementById("signatureInput");
+// Signature Canvas
+const signatureCanvas = document.getElementById('signatureCanvas');
+const signatureCtx = signatureCanvas.getContext('2d');
+let isSigning = false;
 
-  const photoFiles = photoInput.files;
-  const signatureFile = signatureInput.files[0];
-
-  let errors = [];
-
-  // Check at least one photo is uploaded
-  if (!photoFiles.length) {
-    errors.push("Please upload at least one photo.");
-  }
-
-  // Check signature file uploaded
-  if (!signatureFile) {
-    errors.push("Please upload a digital signature.");
-  }
-
-  // Check file types (image validation)
-  const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
-  for (let file of photoFiles) {
-    if (!allowedTypes.includes(file.type)) {
-      errors.push("All uploaded photos must be JPG or PNG images.");
-      break;
+// Handle Vehicle Image Upload
+const vehicleImageInput = document.getElementById('vehicleImageInput');
+vehicleImageInput.addEventListener('change', () => {
+    const file = vehicleImageInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            vehicleImage.src = e.target.result;
+            vehicleImage.onload = () => {
+                vehicleCtx.clearRect(0, 0, vehicleCanvas.width, vehicleCanvas.height);
+                vehicleCtx.drawImage(vehicleImage, 0, 0, vehicleCanvas.width, vehicleCanvas.height);
+            };
+        };
+        reader.readAsDataURL(file);
     }
-  }
-
-  if (signatureFile && !allowedTypes.includes(signatureFile.type)) {
-    errors.push("Signature must be a JPG or PNG image.");
-  }
-
-  // Display or submit
-  if (errors.length > 0) {
-    alert(errors.join("\n"));
-  } else {
-    document.getElementById("damageReportForm").submit();
-  }
 });
 
+// Vehicle Canvas Drawing
+vehicleCanvas.addEventListener('mousedown', startDrawing);
+vehicleCanvas.addEventListener('mousemove', draw);
+vehicleCanvas.addEventListener('mouseup', stopDrawing);
+vehicleCanvas.addEventListener('mouseout', stopDrawing);
+
+function startDrawing(e) {
+    isDrawing = true;
+    draw(e);
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    const rect = vehicleCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    vehicleCtx.beginPath();
+    vehicleCtx.arc(x, y, 5, 0, Math.PI * 2);
+    vehicleCtx.fillStyle = 'red';
+    vehicleCtx.fill();
+}
+
+function stopDrawing() {
+    isDrawing = false;
+}
+
+function clearCanvas() {
+    vehicleCtx.clearRect(0, 0, vehicleCanvas.width, vehicleCanvas.height);
+    if (vehicleImage.src) {
+        vehicleCtx.drawImage(vehicleImage, 0, 0, vehicleCanvas.width, vehicleCanvas.height);
+    }
+}
+
+// Signature Canvas Drawing
+signatureCanvas.addEventListener('mousedown', startSigning);
+signatureCanvas.addEventListener('mousemove', sign);
+signatureCanvas.addEventListener('mouseup', stopSigning);
+signatureCanvas.addEventListener('mouseout', stopSigning);
+
+function startSigning(e) {
+    isSigning = true;
+    sign(e);
+}
+
+function sign(e) {
+    if (!isSigning) return;
+    const rect = signatureCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    signatureCtx.lineTo(x, y);
+    signatureCtx.strokeStyle = '#000';
+    signatureCtx.lineWidth = 2;
+    signatureCtx.stroke();
+    signatureCtx.beginPath();
+    signatureCtx.moveTo(x, y);
+}
+
+function stopSigning() {
+    isSigning = false;
+    signatureCtx.beginPath();
+}
+
+function clearSignature() {
+    signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+}
+
+// Photo Preview
+const photoInput = document.getElementById('photoInput');
+const photoPreview = document.getElementById('photoPreview');
+
+photoInput.addEventListener('change', () => {
+    photoPreview.innerHTML = '';
+    for (let file of photoInput.files) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        photoPreview.appendChild(img);
+    }
+});
+
+// Form Submission
+document.getElementById('reportForm').addEventListener('submit', () => {
+    document.getElementById('canvasImage').value = vehicleCanvas.toDataURL('image/png');
+    document.getElementById('signatureImage').value = signatureCanvas.toDataURL('image/png');
+});

@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         <p><strong>Fuel:</strong> ${vehicle.fuel_type ?? 'N/A'}</p>
                         <p><strong>Transmission:</strong> ${vehicle.transmission ?? 'N/A'}</p>
                         <div style="margin-top: 10px; display: flex; gap: 10px;">
-                            
                             <a href="../view/booking.php?id=${vehicle.vehicle_id}" class="btn" style="background-color: #27ae60;">Rent Now</a>
                         </div>
                     </div>

@@ -1,117 +1,112 @@
+<?php
+require_once '../model/db.php';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Damage Report</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Damage Reports</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+      body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
 
-    header {
-      background: #333;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 
-    main {
-      max-width: 1200px;
-      margin: auto;
-      padding: 30px;
-      background: #fff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+h1, h2 {
+    text-align: center;
+    color: #333;
+}
 
-    section {
-      margin-bottom: 40px;
-    }
+.section {
+    margin-bottom: 20px;
+}
 
-    h2 {
-      margin-bottom: 15px;
-      color: #444;
-    }
+canvas {
+    border: 1px solid #ccc;
+    display: block;
+    margin: 10px auto;
+    background: #fff;
+}
 
-    .canvas-container {
-      border: 2px dashed #999;
-      height: 400px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #fafafa;
-      border-radius: 10px;
-    }
+button {
+    padding: 10px 20px;
+    margin: 10px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
 
-    .canvas-placeholder {
-      color: #888;
-      font-size: 18px;
-    }
+button:hover {
+    background: #0056b3;
+}
 
-    .photo-upload input,
-    .signature input {
-      display: block;
-      margin-top: 10px;
-    }
+#photoPreview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
 
-    label {
-      font-weight: bold;
-      margin-top: 10px;
-      display: block;
-    }
+#photoPreview img {
+    max-width: 100px;
+    height: auto;
+    border: 1px solid #ccc;
+}
 
-    .submit-btn {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 14px 24px;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .submit-btn:hover {
-      background-color: #218838;
-    }
-  </style>
+input[type="file"] {
+    margin: 10px 0;
+    display: block;
+}
+    </style>
 </head>
 <body>
-  <form id="damageReportForm" action="..\..\control\login_check.php" method="POST" enctype="multipart/form-data">
-   <header>
-    <h1>Vehicle Damage Report</h1>
-  </header>
+    <div class="container">
+        <h1>Vehicle Damage Report</h1>
+        <form id="reportForm" action="..\controller\dmg_report_check.php" method="POST" enctype="multipart/form-data">
+            <!-- Vehicle Diagram Canvas -->
+            <div class="section">
+                <h2>Mark Damage</h2>
+                <input type="file" id="vehicleImageInput" accept="image/*">
+                <canvas id="vehicleCanvas" width="500" height="300"></canvas>
+                <input type="hidden" name="canvas_image" id="canvasImage">
+                <button type="button" onclick="clearCanvas()">Clear Canvas</button>
+            </div>
 
-  <main>
-    <!-- Vehicle Inspection Canvas -->
-    <section>
-      <h2>Vehicle Inspection Tool</h2>
-      <div class="canvas-container">
-        <div class="canvas-placeholder">[Canvas Placeholder — Add diagram/annotation tool here]</div>
-      </div>
-    </section>
+            <!-- Photo Upload -->
+            <div class="section">
+                <h2>Upload Photos</h2>
+                <input type="file" name="photos[]" id="photoInput" multiple accept="image/*">
+                <div id="photoPreview"></div>
+            </div>
 
-    <!-- Photo Upload -->
-    <section class="photo-upload">
-      <h2>Upload Timestamped Photos</h2>
-      <label for="photoUpload">Add Photos:</label>
-      <input type="file" id="photoUpload" name="photos" accept="image/*" multiple />
-    </section>
+            <!-- Digital Signature -->
+            <div class="section">
+                <h2>Customer Signature</h2>
+                <canvas id="signatureCanvas" width="400" height="150"></canvas>
+                <input type="hidden" name="signature_image" id="signatureImage">
+                <button type="button" onclick="clearSignature()">Clear Signature</button>
+            </div>
 
-    <!-- Digital Signature -->
-    <section class="signature">
-      <h2>Customer Digital Signature</h2>
-      <label for="signatureInput">Sign Here (Upload or Draw later with JS):</label>
-      <input type="file" id="signatureInput" name="signature" accept="image/*" />
-    </section>
+            <!-- Submit Button -->
+            <button type="submit">Submit Report</button>
+        </form>
+    </div>
 
-    <section>
-      <button class="submit-btn">Submit Report</button>
-    </section>
-  </main>
-</form>
-<script src="..\..\assests\js\dmg_report_validation.js"></script>
+    <script src="..\assests\js\dmg_report_validation.js"></script>
 </body>
 </html>
