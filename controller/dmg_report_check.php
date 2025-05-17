@@ -1,58 +1,59 @@
 <?php
-require_once '../model/db.php';
+include '../model/db.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Directory setup
-    $canvasDir = '../assests/uploads/canvas/';
-    $signatureDir = '../assests/uploads/signatures/';
-    $photoDir = '../assests/uploads/photos/';
+// Check if form is submitted
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Set up folders
+    $canvas_folder = '../assests/uploads/canvas/';
+    $sign_folder = '../assests/uploads/signatures/';
+    $photo_folder = '../assests/uploads/photos/';
     
-    if (!file_exists($canvasDir)) mkdir($canvasDir, 0777, true);
-    if (!file_exists($signatureDir)) mkdir($signatureDir, 0777, true);
-    if (!file_exists($photoDir)) mkdir($photoDir, 0777, true);
+    // Create folders if they don't exist
+    if (!file_exists($canvas_folder)) mkdir($canvas_folder);
+    if (!file_exists($sign_folder)) mkdir($sign_folder);
+    if (!file_exists($photo_folder)) mkdir($photo_folder);
 
-    // Save Canvas Image (includes uploaded image + annotations)
-    $canvasImage = $_POST['canvas_image'];
-    $canvasImage = str_replace('data:image/png;base64,', '', $canvasImage);
-    $canvasImage = str_replace(' ', '+', $canvasImage);
-    $canvasFileName = $canvasDir . uniqid() . '.png';
-    file_put_contents($canvasFileName, base64_decode($canvasImage));
+    // Save canvas image
+    $canvas_data = $_POST['canvas_image'];
+    $canvas_data = str_replace('data:image/png;base64,', '', $canvas_data);
+    $canvas_data = str_replace(' ', '+', $canvas_data);
+    $canvas_name = $canvas_folder . time() . '.png';
+    file_put_contents($canvas_name, base64_decode($canvas_data));
 
-    // Save Signature Image
-    $signatureImage = $_POST['signature_image'];
-    $signatureImage = str_replace('data:image/png;base64,', '', $signatureImage);
-    $signatureImage = str_replace(' ', '+', $signatureImage);
-    $signatureFileName = $signatureDir . uniqid() . '.png';
-    file_put_contents($signatureFileName, base64_decode($signatureImage));
+    // Save signature image
+    $sign_data = $_POST['signature_image'];
+    $sign_data = str_replace('data:image/png;base64,', '', $sign_data);
+    $sign_data = str_replace(' ', '+', $sign_data);
+    $sign_name = $sign_folder . time() . '.png';
+    file_put_contents($sign_name, base64_decode($sign_data));
 
-    // Save Photos
-    $photoPaths = [];
+    // Save photos
+    $photo_list = [];
     if (!empty($_FILES['photos']['name'][0])) {
-        foreach ($_FILES['photos']['tmp_name'] as $index => $tmpName) {
-            if ($_FILES['photos']['error'][$index] === UPLOAD_ERR_OK) {
-                $photoFileName = $photoDir . uniqid() . '_' . $_FILES['photos']['name'][$index];
-                move_uploaded_file($tmpName, $photoFileName);
-                $photoPaths[] = $photoFileName;
+        foreach ($_FILES['photos']['tmp_name'] as $key => $temp_name) {
+            if ($_FILES['photos']['error'][$key] == 0) {
+                $photo_name = $photo_folder . time() . '_' . $_FILES['photos']['name'][$key];
+                move_uploaded_file($temp_name, $photo_name);
+                $photo_list[] = $photo_name;
             }
         }
     }
-    $photoPathsJson = json_encode($photoPaths);
+    $photos_json = json_encode($photo_list);
 
-    // Insert into Database
-    $timestamp = date('Y-m-d H:i:s');
-    $query = "INSERT INTO reports (timestamp, canvas_image, signature_image, photo_images) VALUES (?, ?, ?, ?)";
-    $stmt = mysqli_prepare($conn, $query);
-    mysqli_stmt_bind_param($stmt, 'ssss', $timestamp, $canvasFileName, $signatureFileName, $photoPathsJson);
+    // Save to database
+    $time = date('Y-m-d H:i:s');
+    $query = "INSERT INTO reports (timestamp, canvas_image, signature_image, photo_images) 
+              VALUES ('$time', '$canvas_name', '$sign_name', '$photos_json')";
     
-    if (mysqli_stmt_execute($stmt)) {
-        echo "Report saved successfully!";
+    if (mysqli_query($conn, $query)) {
+        echo "Report saved";
+        header("Location: ../view/damage_report.php");
     } else {
         echo "Error: " . mysqli_error($conn);
     }
 
-    mysqli_stmt_close($stmt);
     mysqli_close($conn);
 } else {
-    echo "Invalid request.";
+    echo "Wrong request!";
 }
 ?>

@@ -31,10 +31,10 @@
   <div class="card">
     <h3>Quick Actions</h3>
     <div class="quick-actions">
-      <a href="..\roles\role_assigment.php">Manage Users</a>
+      <a href="role_assigment.php">Manage Users</a>
       <a href="../cars/manage_cars.php">Manage Cars</a>
       <a href="../bookings/manage_bookings.php">Manage Bookings</a>
-      <a href="../bookings/manage_bookings.php">Damege Report</a>
+      <a href="admin_damage_report.php">Damege Report</a>
     </div>
   </div>
 </div>

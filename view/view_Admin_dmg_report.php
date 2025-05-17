@@ -1,6 +1,16 @@
 <?php
 require_once '../model/db.php';
 
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Static base paths
+define('CANVAS_BASE_PATH', 'controller/assests/uploads/canvas/');
+define('SIGNATURE_BASE_PATH', 'controller/assests/uploads/signatures/');
+define('PHOTO_BASE_PATH', 'controller/assests/uploads/photos/');
+
 if (!isset($_GET['id'])) {
     die("Invalid report ID.");
 }
@@ -21,6 +31,7 @@ if ($row = mysqli_fetch_assoc($result)) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>View Report #<?php echo $row['id']; ?></title>
         <link rel="stylesheet" href="../css/admin_style.css">
+
 
         <style>
         body {
@@ -148,7 +159,9 @@ th {
             <!-- Canvas Image -->
             <p><strong>Canvas Image:</strong></p>
             <?php
-            $canvas_path = '../' . $row['canvas_image'];
+            // Extract filename from database path
+            $canvas_filename = basename($row['canvas_image']);
+            $canvas_path = '../' . CANVAS_BASE_PATH . $canvas_filename;
             if (file_exists($canvas_path) && is_file($canvas_path)) {
                 echo '<img src="' . htmlspecialchars($canvas_path) . '" alt="Canvas Image">';
             } else {
@@ -159,7 +172,9 @@ th {
             <!-- Signature Image -->
             <p><strong>Signature Image:</strong></p>
             <?php
-            $signature_path = '../' . $row['signature_image'];
+            // Extract filename from database path
+            $signature_filename = basename($row['signature_image']);
+            $signature_path = '../' . SIGNATURE_BASE_PATH . $signature_filename;
             if (file_exists($signature_path) && is_file($signature_path)) {
                 echo '<img src="' . htmlspecialchars($signature_path) . '" alt="Signature Image">';
             } else {
@@ -173,7 +188,9 @@ th {
             $photos = json_decode($row['photo_images'], true);
             if ($photos && is_array($photos)) {
                 foreach ($photos as $photo) {
-                    $photo_path = '../' . $photo;
+                    // Extract filename from database path
+                    $photo_filename = basename($photo);
+                    $photo_path = '../' . PHOTO_BASE_PATH . $photo_filename;
                     if (file_exists($photo_path) && is_file($photo_path)) {
                         echo '<img src="' . htmlspecialchars($photo_path) . '" alt="Photo">';
                     } else {
@@ -184,7 +201,6 @@ th {
                 echo '<p>No photos available.</p>';
             }
             ?>
-
             <!-- Back Button -->
             <p><a href="admin_damage_report.php" class="btn view-btn">Back to Admin Panel</a></p>
         </div>
