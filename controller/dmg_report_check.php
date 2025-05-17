@@ -3,9 +3,9 @@ require_once '../model/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Directory setup
-    $canvasDir = 'uploads/canvas/';
-    $signatureDir = 'uploads/signatures/';
-    $photoDir = 'uploads/photos/';
+    $canvasDir = '../assests/uploads/canvas/';
+    $signatureDir = '../assests/uploads/signatures/';
+    $photoDir = '../assests/uploads/photos/';
     
     if (!file_exists($canvasDir)) mkdir($canvasDir, 0777, true);
     if (!file_exists($signatureDir)) mkdir($signatureDir, 0777, true);
