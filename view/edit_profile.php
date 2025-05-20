@@ -1,114 +1,184 @@
+<?php
+session_start();
+require_once '../model/db.php';
+require_once '../model/usermodel.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Get user details
+$user = getUserByEmail($conn, $_SESSION['email']);
+
+// Get user preferences
+$preferences_sql = "SELECT * FROM user_preferences WHERE user_id = ?";
+$preferences_stmt = mysqli_prepare($conn, $preferences_sql);
+mysqli_stmt_bind_param($preferences_stmt, "i", $_SESSION['user_id']);
+mysqli_stmt_execute($preferences_stmt);
+$preferences = mysqli_stmt_get_result($preferences_stmt)->fetch_assoc();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Edit Profile</title>
-  <link rel="stylesheet" href="../../assets/css/style.css">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background: #f4f4f4;
-    }
-    .profile-container {
-      max-width: 800px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    h2 {
-      border-bottom: 2px solid #ccc;
-      padding-bottom: 10px;
-    }
-    form {
-      margin-bottom: 30px;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="file"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .btn {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #007bff;
-      border: none;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background-color: #0056b3;
-    }
-    .profile-pic {
-      width: 150px;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 50%;
-      margin-bottom: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Edit Profile</title>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .profile-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #666;
+        }
+
+        .btn-secondary:hover {
+            background-color: #555;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="profile-section">
+            <h2>Edit Profile</h2>
+            <form action="../controller/update_profile.php" method="POST">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['first_name']); ?>" required>
+                </div>
 
-<div class="profile-container">
-  <h2>Edit Profile</h2>
-  <img src="../../assets/images/default-avatar.png" alt="Profile Picture" class="profile-pic" id="avatarPreview">
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['last_name']); ?>" required>
+                </div>
 
-  <!-- Edit Profile -->
-  <form id="editProfileForm">
-    <h3>Personal Details</h3>
-    <label for="fullName">Full Name</label>
-    <input type="text" id="fullName" name="fullName" value="John Doe">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+                </div>
 
-    <label for="email">Email</label>
-    <input type="email" id="email" name="email" value="john@example.com">
+                <div class="form-group">
+                    <label for="mobile">Mobile</label>
+                    <input type="tel" id="mobile" name="mobile" value="<?php echo htmlspecialchars($user['mobile'] ?? ''); ?>" pattern="[0-9]{11}">
+                </div>
 
-    <button type="submit" class="btn">Save Changes</button>
-  </form>
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <textarea id="address" name="address" rows="3"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
+                </div>
 
-  <!-- Change Avatar -->
-  <form id="changeAvatarForm" enctype="multipart/form-data">
-    <h3>Change Profile Picture</h3>
-    <label for="avatar">Upload New Avatar</label>
-    <input type="file" id="avatar" name="avatar" accept="image/*">
+                <div class="button-group">
+                    <button type="submit" class="btn">Save Changes</button>
+                    <a href="customer_profile.php" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
 
-    <button type="submit" class="btn">Set as Profile Picture</button>
-  </form>
+        <div class="profile-section">
+            <h2>Car Preferences</h2>
+            <form action="../controller/update_preferences.php" method="POST">
+                <div class="form-group">
+                    <label for="seat_position">Seat Position</label>
+                    <select id="seat_position" name="seat_position">
+                        <option value="">Select position</option>
+                        <option value="front" <?php echo ($preferences['seat_position'] ?? '') === 'front' ? 'selected' : ''; ?>>Front</option>
+                        <option value="middle" <?php echo ($preferences['seat_position'] ?? '') === 'middle' ? 'selected' : ''; ?>>Middle</option>
+                        <option value="rear" <?php echo ($preferences['seat_position'] ?? '') === 'rear' ? 'selected' : ''; ?>>Rear</option>
+                    </select>
+                </div>
 
-  <!-- Update Password -->
-  <form id="updatePasswordForm">
-    <h3>Update Password</h3>
-    <label for="currentPassword">Current Password</label>
-    <input type="password" id="currentPassword" name="currentPassword">
+                <div class="form-group">
+                    <label for="mirror_position">Mirror Position</label>
+                    <input type="text" id="mirror_position" name="mirror_position" value="<?php echo htmlspecialchars($preferences['mirror_position'] ?? ''); ?>" placeholder="e.g., 45° inward">
+                </div>
 
-    <label for="newPassword">New Password</label>
-    <input type="password" id="newPassword" name="newPassword">
+                <div class="form-group">
+                    <label for="preferred_car_type">Preferred Car Type</label>
+                    <select id="preferred_car_type" name="preferred_car_type">
+                        <option value="">Select type</option>
+                        <option value="sedan" <?php echo ($preferences['preferred_car_type'] ?? '') === 'sedan' ? 'selected' : ''; ?>>Sedan</option>
+                        <option value="suv" <?php echo ($preferences['preferred_car_type'] ?? '') === 'suv' ? 'selected' : ''; ?>>SUV</option>
+                        <option value="sports" <?php echo ($preferences['preferred_car_type'] ?? '') === 'sports' ? 'selected' : ''; ?>>Sports</option>
+                        <option value="luxury" <?php echo ($preferences['preferred_car_type'] ?? '') === 'luxury' ? 'selected' : ''; ?>>Luxury</option>
+                    </select>
+                </div>
 
-    <label for="confirmPassword">Confirm New Password</label>
-    <input type="password" id="confirmPassword" name="confirmPassword">
+                <div class="button-group">
+                    <button type="submit" class="btn">Save Preferences</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <button type="submit" class="btn">Update Password</button>
-  </form>
-
-  <!-- Delete Profile -->
-  <form id="deleteProfileForm">
-    <h3>Delete Profile</h3>
-    <p>This action is irreversible. Proceed with caution.</p>
-    <button type="submit" class="btn" style="background-color: #dc3545;">Delete Profile</button>
-  </form>
-</div>
-
+    <script>
+        // Add any JavaScript for dynamic features here
+        document.addEventListener('DOMContentLoaded', function() {
+            // Example: Form validation
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // Add your validation logic here
+                });
+            });
+        });
+    </script>
 </body>
 </html>

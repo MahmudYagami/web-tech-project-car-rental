@@ -2,34 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="..\..\assests\css\login_style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forget Password</title>
+    <title>Forgot Password</title>
+    <link rel="stylesheet" href="../assets/css/login_style.css">
+    <style>
+        .message-area {
+            margin-bottom: 15px;
+            min-height: 20px;
+            text-align: center;
+        }
+        .password-requirements {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+        .success-message {
+            color: green;
+        }
+        .error-message {
+            color: red;
+        }
+    </style>
 </head>
 <body>
     <div class="wrapper">
-        <form action="..\..\controller\firget_pass_check.php" method="POST">
+        <h1>Change Password</h1>
+        <div id="message-area" class="message-area"></div>
+        <form id="resetForm" method="POST" autocomplete="off">
             <div class="input-box">
-                <input type="email" name="email" placeholder="Email" id="email" required >
-                <i class='bx bxs-user'></i>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
             </div>
-
-             <div class="input-box">
-                <input type="password" id="cur_password" name="password" placeholder="Current Password" required>
-                <i class='bx bxs-lock-alt'></i>
-            </div>
-
             <div class="input-box">
-                <input type="password" id="new_password" name="password" placeholder="New Password" required>
-                <i class='bx bxs-lock-alt'></i>
+                <input type="password" id="recent_password" name="recent_password" placeholder="Enter current password" required>
             </div>
-            <div>
-                <button type="button" id="submit-btn" class="btn">Reset Password</button> 
+            <div class="input-box">
+                <input type="password" id="new_password" name="new_password" placeholder="Enter new password" required>
+                <div class="password-requirements">
+                    Password must be at least 5 characters long, containing at least one uppercase letter, one lowercase letter, and one number.
+                </div>
             </div>
+            <div class="input-box">
+                <input type="password" id="confirm_new_password" name="confirm_new_password" placeholder="Confirm new password" required>
+            </div>
+            <button type="submit" class="btn">Reset Password</button>
         </form>
+        <div class="register-link">
+            <p><a href="login.php">Back to Login</a></p>
+        </div>
     </div>
-    
-    <script src="..\..\assests\js\forget_pass_Valida.js"></script>
+
+    <script>
+        document.getElementById('resetForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('../controller/reset_password.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageArea = document.getElementById('message-area');
+                messageArea.textContent = data.message;
+                messageArea.className = 'message-area ' + (data.status === 'success' ? 'success-message' : 'error-message');
+                
+                if (data.status === 'success') {
+                    setTimeout(() => {
+                        window.location.href = 'login.php';
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('message-area').textContent = 'An error occurred. Please try again.';
+                document.getElementById('message-area').className = 'message-area error-message';
+            });
+        });
+    </script>
 </body>
 </html>

@@ -107,6 +107,6 @@ input[type="file"] {
         </form>
     </div>
 
-    <script src="..\assests\js\dmg_report_validation.js"></script>
+    <script src="..\assets\js\dmg_report_validation.js"></script>
 </body>
 </html>

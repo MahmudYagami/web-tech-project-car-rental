@@ -4,9 +4,9 @@ include '../model/db.php';
 // Check if form is submitted
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Set up folders
-    $canvas_folder = '../assests/uploads/canvas/';
-    $sign_folder = '../assests/uploads/signatures/';
-    $photo_folder = '../assests/uploads/photos/';
+    $canvas_folder = '../assets/uploads/canvas/';
+    $sign_folder = '../assets/uploads/signatures/';
+    $photo_folder = '../assets/uploads/photos/';
     
     // Create folders if they don't exist
     if (!file_exists($canvas_folder)) mkdir($canvas_folder);

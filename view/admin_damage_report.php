@@ -190,7 +190,7 @@ th {
         </table>
     </div>
 
-    <script src="..\assests\js\admin_dmg_report.js"></script>
+    <script src="..\assets\js\admin_dmg_report.js"></script>
 </body>
 </html>
 

@@ -1,4 +1,8 @@
 <?php
+session_start();
+require_once '../model/db.php';
+require_once '../model/usermodel.php';
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $errors = [];
 
@@ -29,6 +33,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $errors[] = "Invalid email format.";
     }
 
+    // Check if email already exists
+    $existingUser = getUserByEmail($conn, $email);
+    if ($existingUser) {
+        $_SESSION['register_error'] = "An account with this email already exists. Please use a different email or login.";
+        mysqli_close($conn);
+        header("Location: ../view/register.php");
+        exit();
+    }
+
     // Password complexity check
     $hasUpper = $hasLower = $hasDigit = $hasSpecial = false;
     $specialChars = "!@#$%^&*()_+-=[]{};:'\",.<>/?";
@@ -57,18 +70,53 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Final output
     if (!empty($errors)) {
-        echo "<h2>Validation Errors:</h2><ul>";
-        foreach ($errors as $err) {
-            echo "<li>" . htmlspecialchars($err) . "</li>";
-        }
-        echo "</ul><a href='register.php'>Go Back</a>";
+        $_SESSION['register_errors'] = $errors;
+        mysqli_close($conn);
+        header("Location: ../view/register.php");
+        exit();
     } else {
-        echo "<h2>Registration Successful (Validated in PHP)!</h2>";
-        echo "<a href='login.php'>Go to Login</a>";
+        // If no errors, proceed with registration
+        $result = createUser($conn, $email, $password, $firstName, $lastName, 'user');
+        
+        if ($result) {
+            // Insert additional user details into user_details table
+            $sql = "INSERT INTO user_details (user_id, mobile, country, address, date_of_birth) 
+                    SELECT user_id, ?, ?, ?, ? FROM users WHERE email = ?";
+            $stmt = mysqli_prepare($conn, $sql);
+            
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, "sssss", $mobile, $country, $address, $dob, $email);
+                $detailsResult = mysqli_stmt_execute($stmt);
+                mysqli_stmt_close($stmt);
+                
+                if ($detailsResult) {
+                    $_SESSION['register_success'] = "Registration successful! You can now login with your credentials.";
+                    mysqli_close($conn);
+                    header("Location: ../view/login.php");
+                    exit();
+                } else {
+                    $_SESSION['register_error'] = "There was an error creating your account. Please try again.";
+                    mysqli_close($conn);
+                    header("Location: ../view/register.php");
+                    exit();
+                }
+            } else {
+                $_SESSION['register_error'] = "There was an error creating your account. Please try again.";
+                mysqli_close($conn);
+                header("Location: ../view/register.php");
+                exit();
+            }
+        } else {
+            $_SESSION['register_error'] = "There was an error creating your account. Please try again.";
+            mysqli_close($conn);
+            header("Location: ../view/register.php");
+            exit();
+        }
     }
 } else {
     // If not POST
-    header("Location: register.php");
+    mysqli_close($conn);
+    header("Location: ../view/register.php");
     exit();
 }
 ?>

@@ -1,49 +1,51 @@
 <?php
 require_once '../model/db.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
+if (isset($_POST['search'])) {
     $search = mysqli_real_escape_string($conn, $_POST['search']);
     
-    // Search by ID or timestamp
-    $query = "SELECT id, timestamp, canvas_image, signature_image, photo_images FROM reports 
-              WHERE id = ? OR timestamp LIKE ? 
-              ORDER BY timestamp DESC";
-    $stmt = mysqli_prepare($conn, $query);
-    $search_like = "%$search%";
-    mysqli_stmt_bind_param($stmt, 'is', $search, $search_like);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    // Search in reports table and join with users table to search by email
+    $query = "SELECT r.id, r.timestamp, r.canvas_image, r.signature_image, r.photo_images, u.email 
+              FROM reports r 
+              LEFT JOIN users u ON r.user_id = u.user_id 
+              WHERE r.id LIKE '%$search%' 
+              OR r.timestamp LIKE '%$search%' 
+              OR u.email LIKE '%$search%'
+              ORDER BY r.timestamp DESC";
     
-    while ($row = mysqli_fetch_assoc($result)) {
-        ?>
-        <tr>
-            <td><?php echo $row['id']; ?></td>
-            <td><?php echo $row['timestamp']; ?></td>
-            <td><img src="../<?php echo $row['canvas_image']; ?>" alt="Canvas" class="thumbnail"></td>
-            <td><img src="../<?php echo $row['signature_image']; ?>" alt="Signature" class="thumbnail"></td>
-            <td>
-                <?php
-                $photos = json_decode($row['photo_images'], true);
-                if ($photos) {
-                    foreach ($photos as $photo) {
-                        echo '<img src="../' . $photo . '" alt="Photo" class="thumbnail">';
-                    }
-                } else {
-                    echo 'No photos';
+    $result = mysqli_query($conn, $query);
+    
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            echo '<tr>';
+            echo '<td>' . htmlspecialchars($row['id']) . '</td>';
+            echo '<td class="email-cell" title="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['email']) . '</td>';
+            echo '<td>' . htmlspecialchars($row['timestamp']) . '</td>';
+            echo '<td><img src="../' . htmlspecialchars($row['canvas_image']) . '" alt="Canvas" class="thumbnail"></td>';
+            echo '<td><img src="../' . htmlspecialchars($row['signature_image']) . '" alt="Signature" class="thumbnail"></td>';
+            echo '<td>';
+            
+            $photos = json_decode($row['photo_images'], true);
+            if ($photos) {
+                foreach ($photos as $photo) {
+                    echo '<img src="../' . htmlspecialchars($photo) . '" alt="Photo" class="thumbnail">';
                 }
-                ?>
-            </td>
-            <td>
-                <a href="view_report.php?id=<?php echo $row['id']; ?>" class="btn view-btn">View</a>
-                <button onclick="deleteReport(<?php echo $row['id']; ?>)" class="btn delete-btn">Delete</button>
-            </td>
-        </tr>
-        <?php
+            } else {
+                echo 'No photos';
+            }
+            
+            echo '</td>';
+            echo '<td>';
+            echo '<a href="view_Admin_dmg_report.php?id=' . $row['id'] . '" class="btn view-btn">View</a>';
+            echo '<button onclick="deleteReport(' . $row['id'] . ')" class="btn delete-btn">Delete</button>';
+            echo '</td>';
+            echo '</tr>';
+        }
+    } else {
+        echo '<tr><td colspan="7">Error searching reports</td></tr>';
     }
-    
-    mysqli_stmt_close($stmt);
 } else {
-    echo '<tr><td colspan="6">Invalid search request.</td></tr>';
+    echo '<tr><td colspan="7">No search term provided</td></tr>';
 }
 
 mysqli_close($conn);

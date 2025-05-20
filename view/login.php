@@ -1,9 +1,15 @@
 <?php
 session_start();
+require_once '../controller/check_remember_me.php';
 
-if (!isset($_SESSION['email'])) {
-    header("Location: login.php");
-    exit;
+// If user is already logged in, redirect to appropriate dashboard
+if (isset($_SESSION['user_id'])) {
+    if ($_SESSION['role'] === 'admin') {
+        header("Location: admin_dashboard.php");
+    } else {
+        header("Location: user_dashboard.php");
+    }
+    exit();
 }
 ?>
 
@@ -14,73 +20,32 @@ if (!isset($_SESSION['email'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="..\assests\css\login_style.css">
-
-     <style>
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 28px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 28px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 22px;
-      width: 22px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: #2196F3;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(22px);
-    }
-    .lower{
-    display: flex;
-    flex-direction: row;
-    justify-content:space-between;
-    }
-    .message {
-    font-size: 13px;
-    color: red;
-    margin-top: 4px;
-    }
-    input.error {
-    border: 2px solid red;
-    }
-    input.success {
-    border: 2px solid green;
-    }
-  </style>
+    <link rel="stylesheet" href="..\assets\css\login_style.css">
 </head>
 <body>
     
     <div class="wrapper">
         <form id="login-form" action="..\controller\login_check.php" method="POST">
             <h1>Login</h1>
+
+            <?php if(isset($_SESSION['login_error'])): ?>
+                <div class="alert alert-danger">
+                    <?php 
+                        echo $_SESSION['login_error'];
+                        unset($_SESSION['login_error']);
+                    ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if(isset($_SESSION['register_success'])): ?>
+                <div class="alert alert-success">
+                    <?php 
+                        echo $_SESSION['register_success'];
+                        unset($_SESSION['register_success']);
+                    ?>
+                </div>
+            <?php endif; ?>
+
             <div class="input-box">
                 <input type="email" id="email" name="email" placeholder="Email" required>
                 <i class='bx bxs-user'></i>
@@ -90,16 +55,16 @@ if (!isset($_SESSION['email'])) {
                 <i class='bx bxs-lock-alt'></i>
             </div>
             <div class="lower">
-            <div class="remember-forgot">
-                <a href="forgot_password.php">Forgot Password?</a>
-            </div>
-            <div class="toggle-row">
-                            <label class="switch">
-                                <input type="checkbox">
-                                <span class="slider"></span>
-                            </label>
-                            <span class="remember-text">Remember me</span>
-                    </div>
+                <div class="remember-forgot">
+                    <a href="forgot_password.php">Forgot Password?</a>
+                </div>
+                <div class="toggle-row">
+                    <label class="switch">
+                        <input type="checkbox" name="remember_me" id="remember_me">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="remember-text">Remember me</span>
+                </div>
             </div>
             <button type="submit" id="submit-btn" class="btn">Login</button> 
             <div class="register-link">

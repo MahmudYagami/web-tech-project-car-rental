@@ -1,15 +1,50 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="..\..\assests\css\reg_style.css">
+    <link rel="stylesheet" href="..\assets\css\reg_style.css">
     <title>Registration Form</title>
   </head>
   <body>
     <div class="form-container">
       <h1>Registration</h1>
-      <form id="registration-form" action="..\..\control\register_validation.php" method="POST">
+
+      <?php if(isset($_SESSION['register_error'])): ?>
+        <div class="alert alert-danger">
+          <?php 
+            echo $_SESSION['register_error'];
+            unset($_SESSION['register_error']);
+          ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if(isset($_SESSION['register_errors'])): ?>
+        <div class="alert alert-danger">
+          <ul>
+            <?php 
+              foreach($_SESSION['register_errors'] as $error) {
+                echo "<li>" . htmlspecialchars($error) . "</li>";
+              }
+              unset($_SESSION['register_errors']);
+            ?>
+          </ul>
+        </div>
+      <?php endif; ?>
+
+      <?php if(isset($_SESSION['register_success'])): ?>
+        <div class="alert alert-success">
+          <?php 
+            echo $_SESSION['register_success'];
+            unset($_SESSION['register_success']);
+          ?>
+        </div>
+      <?php endif; ?>
+
+      <form id="registration-form" action="..\controller\register_validation.php" method="POST">
         <label for="firstname">First Name:</label>
         <input type="text" id="firstname" name="first_name" required />
         <div id="firstname-message" class="message"></div>
@@ -72,11 +107,11 @@
       <div class="login-link">
         <span>
           Already have an account?
-          <a href="login.php">Login here</a>
+          <a href="..\view\login.php">Login here</a>
         </span>
       </div>
     </div>
 
-    <script src="..\..\assests\js\reg_valid.js"></script>
+    <script src="..\assests\js\reg_valid.js"></script>
   </body>
 </html>
