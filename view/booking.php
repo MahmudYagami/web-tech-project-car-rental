@@ -1,6 +1,5 @@
 <?php
 session_start();
-require_once '../model/db.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -8,27 +7,13 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Check if car_id is provided
-if (!isset($_GET['car_id'])) {
-    header("Location: inventory.php");
+// Check if car data is available in session
+if (!isset($_SESSION['booking_car'])) {
+    header("Location: ../controller/booking_controller.php?car_id=" . ($_GET['car_id'] ?? ''));
     exit();
 }
 
-$carId = $_GET['car_id'];
-
-// Get car details
-$query = "SELECT * FROM cars WHERE car_id = ? AND status = 'available'";
-$stmt = mysqli_prepare($conn, $query);
-mysqli_stmt_bind_param($stmt, "i", $carId);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-$car = mysqli_fetch_assoc($result);
-
-if (!$car) {
-    $_SESSION['error'] = "Selected car is no longer available.";
-    header("Location: inventory.php");
-    exit();
-}
+$car = $_SESSION['booking_car'];
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../model/db.php';
+require_once '../model/usermodel.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -10,45 +11,22 @@ if (!isset($_SESSION['user_id'])) {
 
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get form data
-    $seat_position = trim($_POST['seat_position'] ?? '');
-    $mirror_position = trim($_POST['mirror_position'] ?? '');
-    $preferred_car_type = trim($_POST['preferred_car_type'] ?? '');
+    // Prepare preferences data
+    $preferences = [
+        'seat_position' => $_POST['seat_position'] ?? '',
+        'mirror_position' => $_POST['mirror_position'] ?? '',
+        'preferred_car_type' => $_POST['preferred_car_type'] ?? ''
+    ];
 
-    // Check if preferences exist for this user
-    $check_sql = "SELECT id FROM user_preferences WHERE user_id = ?";
-    $check_stmt = mysqli_prepare($conn, $check_sql);
-    mysqli_stmt_bind_param($check_stmt, "i", $_SESSION['user_id']);
-    mysqli_stmt_execute($check_stmt);
-    $result = mysqli_stmt_get_result($check_stmt);
+    // Update preferences using model function
+    $result = updateUserPreferences($conn, $_SESSION['user_id'], $preferences);
     
-    if (mysqli_num_rows($result) > 0) {
-        // Update existing preferences
-        $update_sql = "UPDATE user_preferences SET 
-                      seat_position = ?, 
-                      mirror_position = ?, 
-                      preferred_car_type = ? 
-                      WHERE user_id = ?";
-        
-        $stmt = mysqli_prepare($conn, $update_sql);
-        mysqli_stmt_bind_param($stmt, "sssi", $seat_position, $mirror_position, $preferred_car_type, $_SESSION['user_id']);
+    if ($result['success']) {
+        $_SESSION['preferences_success'] = $result['message'];
     } else {
-        // Insert new preferences
-        $insert_sql = "INSERT INTO user_preferences 
-                      (user_id, seat_position, mirror_position, preferred_car_type) 
-                      VALUES (?, ?, ?, ?)";
-        
-        $stmt = mysqli_prepare($conn, $insert_sql);
-        mysqli_stmt_bind_param($stmt, "isss", $_SESSION['user_id'], $seat_position, $mirror_position, $preferred_car_type);
+        $_SESSION['preferences_error'] = $result['message'];
     }
 
-    if (mysqli_stmt_execute($stmt)) {
-        $_SESSION['preferences_success'] = "Car preferences updated successfully.";
-    } else {
-        $_SESSION['preferences_error'] = "Error updating preferences. Please try again.";
-    }
-
-    mysqli_stmt_close($stmt);
     header("Location: ../view/customer_profile.php");
     exit();
 } else {

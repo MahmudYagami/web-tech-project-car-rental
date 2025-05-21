@@ -11,6 +11,12 @@ if (!isset($_SESSION['user_id'])) {
 
 // Get user details
 $user = getUserByEmail($conn, $_SESSION['email']);
+if (!$user) {
+    // If user data cannot be found, redirect to login
+    session_destroy();
+    header("Location: login.php");
+    exit();
+}
 $loyaltyPoints = getUserLoyaltyPoints($conn, $_SESSION['user_id']);
 $totalDamageReports = getUserDamageReports($conn, $_SESSION['user_id']);
 $bookingStats = getUserBookingStats($conn, $_SESSION['user_id']);
@@ -174,7 +180,7 @@ $bookingStats = getUserBookingStats($conn, $_SESSION['user_id']);
     <div class="card">
       <h3>Quick Actions</h3>
       <div class="quick-actions">
-        <a href="user_booking.php">View My Bookings</a>
+        <a href="../controller/user_bookings_controller.php">View My Bookings</a>
         <a href="inventory.php">Browse Cars</a>
         <a href="damage_report.php">Report Damage</a>
         <a href="../controller/return_car.php" class="return-btn">Return Car</a>

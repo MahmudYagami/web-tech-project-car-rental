@@ -1,7 +1,5 @@
 <?php
 session_start();
-require_once '../model/db.php';
-require_once '../model/usermodel.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -9,13 +7,18 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Check if payment_status column exists
-$check_column = "SHOW COLUMNS FROM bookings LIKE 'payment_status'";
-$column_result = mysqli_query($conn, $check_column);
-$has_payment_status = mysqli_num_rows($column_result) > 0;
+// Check if we have the bookings data in session
+if (!isset($_SESSION['user_bookings_data'])) {
+    header("Location: ../controller/user_bookings_controller.php");
+    exit();
+}
 
-// Get user's bookings
-$bookings = getUserBookings($conn, $_SESSION['user_id']);
+// Get data from session
+$bookings = $_SESSION['user_bookings_data']['bookings'];
+$has_payment_status = $_SESSION['user_bookings_data']['has_payment_status'];
+
+// Clear the session data after retrieving it
+unset($_SESSION['user_bookings_data']);
 ?>
 
 <!DOCTYPE html>

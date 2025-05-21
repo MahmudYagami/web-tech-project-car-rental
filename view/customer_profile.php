@@ -12,23 +12,12 @@ if (!isset($_SESSION['user_id'])) {
 // Get user details
 $user = getUserByEmail($conn, $_SESSION['email']);
 
-// Get user preferences
-$preferences_sql = "SELECT * FROM user_preferences WHERE user_id = ?";
-$preferences_stmt = mysqli_prepare($conn, $preferences_sql);
-mysqli_stmt_bind_param($preferences_stmt, "i", $_SESSION['user_id']);
-mysqli_stmt_execute($preferences_stmt);
-$preferences = mysqli_stmt_get_result($preferences_stmt)->fetch_assoc();
+// Get user preferences using the model function
+$preferences = getUserPreferencesById($conn, $_SESSION['user_id']);
 
-// Get booking history
-$bookings_sql = "SELECT b.*, c.model, c.brand 
-                 FROM bookings b 
-                 JOIN cars c ON b.car_id = c.car_id 
-                 WHERE b.user_id = ? 
-                 ORDER BY b.booking_date DESC";
-$bookings_stmt = mysqli_prepare($conn, $bookings_sql);
-mysqli_stmt_bind_param($bookings_stmt, "i", $_SESSION['user_id']);
-mysqli_stmt_execute($bookings_stmt);
-$bookings = mysqli_stmt_get_result($bookings_stmt);
+// Get booking history using the model function
+$bookings_result = getUserBookingHistory($conn, $_SESSION['user_id']);
+
 ?>
 
 <!DOCTYPE html>
@@ -144,7 +133,7 @@ $bookings = mysqli_stmt_get_result($bookings_stmt);
     <div class="container">
         <div class="profile-header">
             <h1>Customer Profile</h1>
-            <a href="edit_profile.php" class="edit-btn">Edit Profile</a>
+            <a href="../controller/edit_profile_controller.php" class="edit-btn">Edit Profile</a>
         </div>
 
         <div class="profile-section">
@@ -203,7 +192,7 @@ $bookings = mysqli_stmt_get_result($bookings_stmt);
 
         <div class="profile-section booking-history">
             <h2>Booking History</h2>
-            <?php while ($booking = mysqli_fetch_assoc($bookings)): ?>
+            <?php foreach ($bookings_result as $booking): ?>
                 <div class="booking-item">
                     <h3><?php echo htmlspecialchars($booking['brand'] . ' ' . $booking['model']); ?></h3>
                     <p>Booking Date: <?php echo date('F j, Y', strtotime($booking['booking_date'])); ?></p>
@@ -212,7 +201,7 @@ $bookings = mysqli_stmt_get_result($bookings_stmt);
                     </span></p>
                     <p>Total Amount: $<?php echo number_format($booking['total_amount'], 2); ?></p>
                 </div>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         </div>
     </div>
 

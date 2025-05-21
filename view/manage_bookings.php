@@ -1,6 +1,5 @@
 <?php
 session_start();
-require_once '../model/db.php';
 
 // Check if user is admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
@@ -8,20 +7,9 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// Check if payment_status column exists
-$check_column = "SHOW COLUMNS FROM bookings LIKE 'payment_status'";
-$column_result = mysqli_query($conn, $check_column);
-$has_payment_status = mysqli_num_rows($column_result) > 0;
-
-// Get all bookings with user and car details
-$query = "SELECT b.*, 
-          u.first_name, u.last_name, u.email,
-          c.brand, c.model, c.image_url
-          FROM bookings b
-          JOIN users u ON b.user_id = u.user_id
-          JOIN cars c ON b.car_id = c.car_id
-          ORDER BY b.booking_date DESC";
-$result = mysqli_query($conn, $query);
+// Get data from session
+$has_payment_status = $_SESSION['has_payment_status'] ?? false;
+$bookings = $_SESSION['bookings'] ?? [];
 ?>
 
 <!DOCTYPE html>
@@ -249,30 +237,28 @@ $result = mysqli_query($conn, $query);
                     <th>Total Amount</th>
                     <th>Status</th>
                     <?php if ($has_payment_status): ?>
-                    <th>Payment Status</th>
+                        <th>Payment Status</th>
                     <?php endif; ?>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php while ($booking = mysqli_fetch_assoc($result)) { ?>
+                <?php foreach ($bookings as $booking): ?>
                     <tr>
-                        <td><?php echo $booking['booking_id']; ?></td>
+                        <td><?php echo htmlspecialchars($booking['booking_id']); ?></td>
                         <td>
                             <?php echo htmlspecialchars($booking['first_name'] . ' ' . $booking['last_name']); ?><br>
                             <small><?php echo htmlspecialchars($booking['email']); ?></small>
                         </td>
                         <td><?php echo htmlspecialchars($booking['brand'] . ' ' . $booking['model']); ?></td>
                         <td>
-                            <img src="../<?php echo htmlspecialchars($booking['image_url']); ?>" 
-                                 alt="Car Image" class="car-image">
+                            <img src="<?php echo htmlspecialchars($booking['image_url']); ?>" alt="Car Image" class="car-image">
                         </td>
-                        <td><?php echo date('M d, Y', strtotime($booking['start_date'])); ?></td>
-                        <td><?php echo date('M d, Y', strtotime($booking['end_date'])); ?></td>
-                        <td>$<?php echo number_format($booking['total_amount'], 2); ?></td>
+                        <td><?php echo htmlspecialchars($booking['start_date']); ?></td>
+                        <td><?php echo htmlspecialchars($booking['end_date']); ?></td>
+                        <td>$<?php echo htmlspecialchars(number_format($booking['total_amount'], 2)); ?></td>
                         <td>
-                            <select class="status-select" data-booking-id="<?php echo $booking['booking_id']; ?>" 
-                                    onchange="updateBookingStatus(this)">
+                            <select class="status-select" onchange="updateStatus(this.value, <?php echo $booking['booking_id']; ?>)">
                                 <option value="pending" <?php echo $booking['status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
                                 <option value="confirmed" <?php echo $booking['status'] === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
                                 <option value="cancelled" <?php echo $booking['status'] === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
@@ -280,109 +266,130 @@ $result = mysqli_query($conn, $query);
                             </select>
                         </td>
                         <?php if ($has_payment_status): ?>
-                        <td>
-                            <span class="status-badge status-<?php echo strtolower($booking['payment_status'] ?? 'pending'); ?>">
-                                <?php echo ucfirst($booking['payment_status'] ?? 'Pending'); ?>
-                            </span>
-                        </td>
+                            <td>
+                                <span class="status-badge status-<?php echo strtolower($booking['payment_status']); ?>">
+                                    <?php echo htmlspecialchars($booking['payment_status']); ?>
+                                </span>
+                            </td>
                         <?php endif; ?>
                         <td>
-                            <a href="view_booking.php?id=<?php echo $booking['booking_id']; ?>" class="action-btn view-btn">
-                                <i class='bx bx-show'></i> View
-                            </a>
-                            <a href="edit_booking.php?id=<?php echo $booking['booking_id']; ?>" class="action-btn edit-btn">
-                                <i class='bx bx-edit'></i> Edit
-                            </a>
-                            <a href="../controller/delete_booking.php?id=<?php echo $booking['booking_id']; ?>" 
-                               class="action-btn delete-btn"
-                               onclick="return confirm('Are you sure you want to delete this booking?')">
-                                <i class='bx bx-trash'></i> Delete
-                            </a>
+                            <a href="view_booking.php?id=<?php echo $booking['booking_id']; ?>" class="action-btn view-btn">View</a>
+                            <button onclick="deleteBooking(<?php echo $booking['booking_id']; ?>)" class="action-btn delete-btn">Delete</button>
                         </td>
                     </tr>
-                <?php } ?>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>
 
     <script>
-        function updateBookingStatus(selectElement) {
-            const bookingId = selectElement.dataset.bookingId;
-            const newStatus = selectElement.value;
+        function searchBookings() {
+            const searchTerm = document.getElementById('searchInput').value;
             
-            // Show loading state
-            selectElement.disabled = true;
-            
-            // Send AJAX request to update status
+            fetch(`../controller/manage_bookings_controller.php?search=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateBookingsTable(data.data);
+                    } else {
+                        alert('Error searching bookings: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while searching bookings');
+                });
+        }
+
+        function updateBookingsTable(bookings) {
+            const tbody = document.querySelector('.bookings-table tbody');
+            tbody.innerHTML = '';
+
+            bookings.forEach(booking => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${booking.booking_id}</td>
+                    <td>
+                        ${booking.first_name} ${booking.last_name}<br>
+                        <small>${booking.email}</small>
+                    </td>
+                    <td>${booking.brand} ${booking.model}</td>
+                    <td>
+                        <img src="${booking.image_url}" alt="Car Image" class="car-image">
+                    </td>
+                    <td>${booking.start_date}</td>
+                    <td>${booking.end_date}</td>
+                    <td>$${parseFloat(booking.total_amount).toFixed(2)}</td>
+                    <td>
+                        <select class="status-select" onchange="updateStatus(this.value, ${booking.booking_id})">
+                            <option value="pending" ${booking.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="confirmed" ${booking.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                            <option value="cancelled" ${booking.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                            <option value="completed" ${booking.status === 'completed' ? 'selected' : ''}>Completed</option>
+                        </select>
+                    </td>
+                    ${window.hasPaymentStatus ? `
+                        <td>
+                            <span class="status-badge status-${booking.payment_status.toLowerCase()}">
+                                ${booking.payment_status}
+                            </span>
+                        </td>
+                    ` : ''}
+                    <td>
+                        <a href="view_booking.php?id=${booking.booking_id}" class="action-btn view-btn">View</a>
+                        <button onclick="deleteBooking(${booking.booking_id})" class="action-btn delete-btn">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateStatus(status, bookingId) {
             fetch('../controller/update_booking_status.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `booking_id=${bookingId}&status=${newStatus}`
+                body: `booking_id=${bookingId}&status=${status}`
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    // Show success message
-                    alert('Status updated successfully');
-                    // Update the status badge
-                    const statusBadge = selectElement.closest('tr').querySelector('.status-badge');
-                    if (statusBadge) {
-                        statusBadge.className = `status-badge status-${newStatus}`;
-                        statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-                    }
-                } else {
-                    // Show error message
-                    alert(data.message || 'Error updating status');
-                    // Reset select to previous value
-                    selectElement.value = selectElement.dataset.previousValue;
+                if (!data.success) {
+                    alert('Error updating status: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error updating status');
-                // Reset select to previous value
-                selectElement.value = selectElement.dataset.previousValue;
-            })
-            .finally(() => {
-                // Re-enable select
-                selectElement.disabled = false;
+                alert('An error occurred while updating the status');
             });
         }
 
-        // Store previous value when select changes
-        document.querySelectorAll('.status-select').forEach(select => {
-            select.addEventListener('focus', function() {
-                this.dataset.previousValue = this.value;
-            });
-        });
-
-        function searchBookings() {
-            const input = document.getElementById('searchInput');
-            const filter = input.value.toLowerCase();
-            const table = document.querySelector('.bookings-table');
-            const rows = table.getElementsByTagName('tr');
-
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                const cells = row.getElementsByTagName('td');
-                let found = false;
-
-                for (let j = 0; j < cells.length; j++) {
-                    const cell = cells[j];
-                    if (cell) {
-                        const text = cell.textContent || cell.innerText;
-                        if (text.toLowerCase().indexOf(filter) > -1) {
-                            found = true;
-                            break;
-                        }
+        function deleteBooking(bookingId) {
+            if (confirm('Are you sure you want to delete this booking?')) {
+                fetch('../controller/delete_booking.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `booking_id=${bookingId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting booking: ' + data.message);
                     }
-                }
-
-                row.style.display = found ? '' : 'none';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting the booking');
+                });
             }
         }
+
+        // Set global variable for payment status column
+        window.hasPaymentStatus = <?php echo json_encode($has_payment_status); ?>;
     </script>
 </body>
 </html> 

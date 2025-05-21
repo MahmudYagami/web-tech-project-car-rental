@@ -1,6 +1,7 @@
 <?php
 session_start();
-require_once '../model/db_connect.php';
+require_once '../model/db.php';
+require_once '../model/vehicle_model.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -9,25 +10,18 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Fetch all available vehicles
-$sql = "SELECT * FROM cars WHERE status = 'available'";
-$result = $conn->query($sql);
-
-$vehicles = [];
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $vehicles[] = [
-            'id' => $row['id'],
-            'model' => $row['model'],
-            'brand' => $row['brand'],
-            'year' => $row['year'],
-            'price_per_day' => $row['price_per_day'],
-            'status' => $row['status'],
-            'image' => $row['image']
-        ];
-    }
-}
+// Get available vehicles using model function
+$result = getAvailableVehicles($conn);
 
 // Set header to return JSON
 header('Content-Type: application/json');
-echo json_encode($vehicles); 
+
+if ($result['success']) {
+    echo json_encode($result['data']);
+} else {
+    http_response_code(500);
+    echo json_encode(['error' => $result['message']]);
+}
+
+mysqli_close($conn);
+?> 

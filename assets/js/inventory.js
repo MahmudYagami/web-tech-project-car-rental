@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Redirect directly to booking page with car ID
-            window.location.href = `booking.php?car_id=${carId}`;
+            // Redirect to booking controller with car ID
+            window.location.href = `../controller/booking_controller.php?car_id=${carId}`;
         });
     });
 });

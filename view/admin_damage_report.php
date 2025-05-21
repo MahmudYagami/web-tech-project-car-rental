@@ -1,15 +1,15 @@
 <?php
-require_once '../model/db.php';
+session_start();
 
-// Fetch total number of reports
-$total_query = "SELECT COUNT(*) as total FROM reports";
-$total_result = mysqli_query($conn, $total_query);
-$total_row = mysqli_fetch_assoc($total_result);
-$total_reports = $total_row['total'];
+// Check if user is admin
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header('Location: login.php');
+    exit();
+}
 
-// Fetch all reports (initial load)
-$query = "SELECT id, timestamp, canvas_image, signature_image, photo_images FROM reports ORDER BY timestamp DESC";
-$result = mysqli_query($conn, $query);
+// Get data from session
+$total_reports = $_SESSION['total_reports'] ?? 0;
+$reports = $_SESSION['damage_reports'] ?? [];
 ?>
 
 <!DOCTYPE html>
@@ -141,7 +141,7 @@ th {
 <body>
     <div class="container">
         <h1>Damage Reports Admin Panel</h1>
-        <p>Total Reports: <span id="totalReports"><?php echo $total_reports; ?></span></p>
+        <p>Total Reports: <span id="totalReports"><?php echo htmlspecialchars($total_reports); ?></span></p>
 
         <!-- Search Bar -->
         <div class="search-bar">
@@ -162,36 +162,113 @@ th {
                 </tr>
             </thead>
             <tbody id="reportsBody">
-                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                <?php foreach ($reports as $report): ?>
                     <tr>
-                        <td><?php echo $row['id']; ?></td>
-                        <td><?php echo $row['timestamp']; ?></td>
-                        <td><img src="../<?php echo $row['canvas_image']; ?>" alt="Canvas" class="thumbnail"></td>
-                        <td><img src="../<?php echo $row['signature_image']; ?>" alt="Signature" class="thumbnail"></td>
+                        <td><?php echo htmlspecialchars($report['id']); ?></td>
+                        <td><?php echo htmlspecialchars($report['timestamp']); ?></td>
                         <td>
-                            <?php
-                            $photos = json_decode($row['photo_images'], true);
-                            if ($photos) {
-                                foreach ($photos as $photo) {
-                                    echo '<img src="../' . $photo . '" alt="Photo" class="thumbnail">';
-                                }
-                            } else {
-                                echo 'No photos';
-                            }
-                            ?>
+                            <img src="../<?php echo htmlspecialchars($report['canvas_image']); ?>" 
+                                 alt="Canvas" class="thumbnail">
                         </td>
                         <td>
-                            <a href="view_Admin_dmg_report.php?id=<?php echo $row['id']; ?>" class="btn view-btn">View</a>
-                            <button onclick="deleteReport(<?php echo $row['id']; ?>)" class="btn delete-btn">Delete</button>
+                            <img src="../<?php echo htmlspecialchars($report['signature_image']); ?>" 
+                                 alt="Signature" class="thumbnail">
+                        </td>
+                        <td>
+                            <?php if ($report['photo_images']): ?>
+                                <?php foreach ($report['photo_images'] as $photo): ?>
+                                    <img src="../<?php echo htmlspecialchars($photo); ?>" 
+                                         alt="Photo" class="thumbnail">
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                No photos
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <a href="view_Admin_dmg_report.php?id=<?php echo $report['id']; ?>" 
+                               class="btn view-btn">View</a>
+                            <button onclick="deleteReport(<?php echo $report['id']; ?>)" 
+                                    class="btn delete-btn">Delete</button>
                         </td>
                     </tr>
-                <?php } ?>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>
 
-    <script src="..\assets\js\admin_dmg_report.js"></script>
+    <script>
+        function searchReports() {
+            const searchTerm = document.getElementById('searchInput').value;
+            
+            fetch(`../controller/admin_damage_report_controller.php?search=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateReportsTable(data.data);
+                    } else {
+                        alert('Error searching reports: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while searching reports');
+                });
+        }
+
+        function updateReportsTable(reports) {
+            const tbody = document.getElementById('reportsBody');
+            tbody.innerHTML = '';
+
+            reports.forEach(report => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${report.id}</td>
+                    <td>${report.timestamp}</td>
+                    <td>
+                        <img src="../${report.canvas_image}" alt="Canvas" class="thumbnail">
+                    </td>
+                    <td>
+                        <img src="../${report.signature_image}" alt="Signature" class="thumbnail">
+                    </td>
+                    <td>
+                        ${report.photo_images ? 
+                            report.photo_images.map(photo => 
+                                `<img src="../${photo}" alt="Photo" class="thumbnail">`
+                            ).join('') : 
+                            'No photos'}
+                    </td>
+                    <td>
+                        <a href="view_Admin_dmg_report.php?id=${report.id}" class="btn view-btn">View</a>
+                        <button onclick="deleteReport(${report.id})" class="btn delete-btn">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function deleteReport(reportId) {
+            if (confirm('Are you sure you want to delete this report?')) {
+                fetch('../controller/admin_damage_report_controller.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=delete&report_id=${reportId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting report: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting the report');
+                });
+            }
+        }
+    </script>
 </body>
 </html>
-
-<?php mysqli_close($conn); ?>

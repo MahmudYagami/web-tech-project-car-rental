@@ -1,7 +1,5 @@
 <?php
 session_start();
-require_once '../model/db.php';
-require_once '../model/usermodel.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -9,15 +7,18 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Get user details
-$user = getUserByEmail($conn, $_SESSION['email']);
+// Check if we have the profile data in session
+if (!isset($_SESSION['edit_profile_data'])) {
+    header("Location: ../controller/edit_profile_controller.php");
+    exit();
+}
 
-// Get user preferences
-$preferences_sql = "SELECT * FROM user_preferences WHERE user_id = ?";
-$preferences_stmt = mysqli_prepare($conn, $preferences_sql);
-mysqli_stmt_bind_param($preferences_stmt, "i", $_SESSION['user_id']);
-mysqli_stmt_execute($preferences_stmt);
-$preferences = mysqli_stmt_get_result($preferences_stmt)->fetch_assoc();
+// Get data from session
+$user = $_SESSION['edit_profile_data']['user'];
+$preferences = $_SESSION['edit_profile_data']['preferences'];
+
+// Clear the session data after retrieving it
+unset($_SESSION['edit_profile_data']);
 ?>
 
 <!DOCTYPE html>

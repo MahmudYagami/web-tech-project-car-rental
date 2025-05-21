@@ -1,54 +1,14 @@
 <?php
 session_start();
-require_once '../model/db.php';
-require_once '../model/booking_model.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../view/login.php");
+    header("Location: login.php");
     exit();
 }
 
-// Handle POST request for car return
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
-    $booking_id = $_POST['booking_id'];
-    
-    // Verify booking ownership
-    $verify_result = verifyBookingOwnership($conn, $booking_id, $_SESSION['user_id']);
-    
-    if ($verify_result['success']) {
-        // Process the car return
-        $return_result = processCarReturn($conn, $booking_id);
-        
-        if ($return_result['success']) {
-            $_SESSION['success_message'] = $return_result['message'];
-        } else {
-            $_SESSION['error_message'] = $return_result['message'];
-        }
-    } else {
-        $_SESSION['error_message'] = $verify_result['message'];
-    }
-    
-    header("Location: ../view/user_dashboard.php");
-    exit();
-}
-
-// Handle GET request to display return car page
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Get user's active bookings
-    $bookings_result = getActiveBookings($conn, $_SESSION['user_id']);
-    
-    // Store bookings in session for the view
-    $_SESSION['active_bookings'] = $bookings_result['data'];
-    
-    // Redirect to the view
-    header("Location: ../view/return_car.php");
-    exit();
-}
-
-// If neither POST nor GET, redirect to dashboard
-header("Location: ../view/user_dashboard.php");
-exit();
+// Get active bookings from session (set by controller)
+$active_bookings = $_SESSION['active_bookings'] ?? [];
 ?>
 
 <!DOCTYPE html>
@@ -130,7 +90,7 @@ exit();
         <?php if (isset($_SESSION['success_message'])): ?>
             <div class="message success">
                 <?php 
-                echo $_SESSION['success_message'];
+                echo htmlspecialchars($_SESSION['success_message']);
                 unset($_SESSION['success_message']);
                 ?>
             </div>
@@ -139,7 +99,7 @@ exit();
         <?php if (isset($_SESSION['error_message'])): ?>
             <div class="message error">
                 <?php 
-                echo $_SESSION['error_message'];
+                echo htmlspecialchars($_SESSION['error_message']);
                 unset($_SESSION['error_message']);
                 ?>
             </div>
@@ -148,7 +108,7 @@ exit();
         <?php if (empty($active_bookings)): ?>
             <div class="no-bookings">
                 <p>You don't have any active bookings to return.</p>
-                <a href="../view/user_dashboard.php" class="return-btn">Back to Dashboard</a>
+                <a href="user_dashboard.php" class="return-btn">Back to Dashboard</a>
             </div>
         <?php else: ?>
             <?php foreach ($active_bookings as $booking): ?>
@@ -159,8 +119,8 @@ exit();
                         <p>Start Date: <?php echo htmlspecialchars($booking['start_date']); ?></p>
                         <p>End Date: <?php echo htmlspecialchars($booking['end_date']); ?></p>
                     </div>
-                    <form class="return-form" method="POST">
-                        <input type="hidden" name="booking_id" value="<?php echo $booking['booking_id']; ?>">
+                    <form class="return-form" method="POST" action="../controller/return_car.php">
+                        <input type="hidden" name="booking_id" value="<?php echo htmlspecialchars($booking['booking_id']); ?>">
                         <button type="submit" class="return-btn">Return Car</button>
                     </form>
                 </div>

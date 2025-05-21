@@ -322,9 +322,9 @@ $total_damage_reports = mysqli_fetch_assoc($damage_result)['total'];
                 <h3>Quick Actions</h3>
                 <div class="quick-actions">
                     <a href="role_assignment.php">Manage Users</a>
-                    <a href="manage_cars.php">Manage Cars</a>
-                    <a href="manage_bookings.php">Manage Bookings</a>
-                    <a href="admin_damage_report.php">Damage Reports</a>
+                    <a href="../controller/manage_cars_controller.php">Manage Cars</a>
+                    <a href="../controller/manage_bookings_controller.php">Manage Bookings</a>
+                    <a href="../controller/admin_damage_report_controller.php">Damage Reports</a>
                     <a href="../controller/logout.php" class="logout-btn">Logout</a>
                 </div>
             </div>
