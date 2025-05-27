@@ -37,37 +37,20 @@ function getAdminDashboardData($conn) {
         return false;
     }
 
-    // Get unread notifications count
-    $notifications_result = getUnreadNotificationsCount($conn, $_SESSION['user_id']);
-    $unread_count = $notifications_result['success'] ? $notifications_result['data'] : 0;
-
     // Store data in session for the view
     $_SESSION['admin'] = $admin_result['data'];
     $_SESSION['dashboard_stats'] = $stats_result['data'];
-    $_SESSION['unread_notifications'] = $unread_count;
 
     return [
         'admin' => $admin_result['data'],
-        'stats' => $stats_result['data'],
-        'unread_notifications' => $unread_count
+        'stats' => $stats_result['data']
     ];
 }
 
 function handleAjaxRequests($conn) {
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-        
-        if (isset($_GET['action']) && $_GET['action'] === 'get_notifications') {
-            $last_id = $_GET['last_id'] ?? 0;
-            $notifications = getNotifications($conn, $_SESSION['user_id'], $last_id);
-            header('Content-Type: application/json');
-            echo json_encode([
-                'success' => true,
-                'notifications' => $notifications['data'],
-                'unread_count' => $_SESSION['unread_notifications']
-            ]);
-            exit();
-        }
+        // Handle any future AJAX requests here
     }
 }
 

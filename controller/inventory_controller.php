@@ -12,21 +12,37 @@ if (isset($_SESSION['user_id'])) {
     }
 }
 
-// Initialize search parameters
-$search = isset($_GET['search']) ? trim($_GET['search']) : '';
-$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+// Handle AJAX search request
+if (isset($_GET['search'])) {
+    $search_term = $_GET['search'];
+    $filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+    
+    $result = searchCars($conn, $search_term, $filter);
+    
+    header('Content-Type: application/json');
+    if ($result['success']) {
+        echo json_encode([
+            'success' => true,
+            'cars' => $result['data']
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => $result['message']
+        ]);
+    }
+    exit();
+}
 
-// Search cars based on parameters
-$result = searchCars($conn, $search, $filter);
-
-// Store results
+// Get all cars for initial page load
+$result = getAllCars($conn);
 if ($result['success']) {
     $cars = $result['data'];
-    error_log("Successfully fetched " . count($cars) . " cars");
 } else {
     $cars = [];
     error_log("Failed to fetch cars: " . $result['message']);
 }
 
-mysqli_close($conn);
+// Include the view
+require_once '../view/inventory.php';
 ?> 

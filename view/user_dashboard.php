@@ -126,6 +126,73 @@ $bookingStats = getUserBookingStats($conn, $_SESSION['user_id']);
       color: #333;
       font-weight: bold;
     }
+    .box{
+      margin:100px;
+    }
+
+    /* Responsive styles */
+    @media screen and (max-width: 768px) {
+      .dashboard {
+        padding: 10px;
+      }
+
+      .profile-section {
+        position: relative;
+        top: 0;
+        right: 0;
+        margin-bottom: 20px;
+        justify-content: flex-end;
+      }
+
+      .user-name {
+        display: none;
+      }
+
+      .card.stats {
+        flex-direction: column;
+      }
+
+      .stat-box {
+        min-width: 100%;
+        margin: 5px 0;
+      }
+
+      .quick-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .quick-actions a {
+        width: 100%;
+        text-align: center;
+      }
+
+      .loyalty-points {
+        width: 100%;
+        text-align: center;
+        margin: 10px 0;
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      .dashboard h2 {
+        font-size: 1.5em;
+        text-align: center;
+      }
+
+      .stat-box {
+        padding: 10px;
+      }
+
+      .stat-box i {
+        font-size: 20px;
+      }
+
+      .stat-box span {
+        font-size: 18px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -141,7 +208,7 @@ $bookingStats = getUserBookingStats($conn, $_SESSION['user_id']);
     </div>
   </div>
 
-  <div class="dashboard">
+  <div class="box">
     <h2>User Dashboard</h2>
 
     <div class="loyalty-points">
@@ -184,6 +251,7 @@ $bookingStats = getUserBookingStats($conn, $_SESSION['user_id']);
         <a href="inventory.php">Browse Cars</a>
         <a href="damage_report.php">Report Damage</a>
         <a href="../controller/return_car.php" class="return-btn">Return Car</a>
+        <a href="forgot_password.php" class="logout-btn">Reset Password</a>
       </div>
     </div>
   </div>

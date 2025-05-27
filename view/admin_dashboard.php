@@ -2,6 +2,7 @@
 session_start();
 require_once '../model/db.php';
 require_once '../model/usermodel.php';
+require_once '../model/adminmodel.php';
 
 // Check if user is logged in and is admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
@@ -12,44 +13,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 // Get admin details
 $admin = getUserByEmail($conn, $_SESSION['email']);
 
-// Get total users
-$users_query = "SELECT COUNT(*) as total FROM users";
-$users_result = mysqli_query($conn, $users_query);
-$total_users = mysqli_fetch_assoc($users_result)['total'];
-
-// Get total bookings
-$bookings_query = "SELECT COUNT(*) as total FROM bookings";
-$bookings_result = mysqli_query($conn, $bookings_query);
-$total_bookings = mysqli_fetch_assoc($bookings_result)['total'];
-
-// Get total cars
-$cars_query = "SELECT COUNT(*) as total FROM cars";
-$cars_result = mysqli_query($conn, $cars_query);
-$total_cars = mysqli_fetch_assoc($cars_result)['total'];
-
-// Check if payment_status column exists
-$check_column = "SHOW COLUMNS FROM bookings LIKE 'payment_status'";
-$column_result = mysqli_query($conn, $check_column);
-$has_payment_status = mysqli_num_rows($column_result) > 0;
-
-// Get revenue for current month
-if ($has_payment_status) {
-    $revenue_query = "SELECT SUM(total_amount) as total FROM bookings 
-                     WHERE MONTH(booking_date) = MONTH(CURRENT_DATE()) 
-                     AND YEAR(booking_date) = YEAR(CURRENT_DATE())
-                     AND payment_status = 'paid'";
-} else {
-    $revenue_query = "SELECT SUM(total_amount) as total FROM bookings 
-                     WHERE MONTH(booking_date) = MONTH(CURRENT_DATE()) 
-                     AND YEAR(booking_date) = YEAR(CURRENT_DATE())";
-}
-$revenue_result = mysqli_query($conn, $revenue_query);
-$monthly_revenue = mysqli_fetch_assoc($revenue_result)['total'] ?? 0;
-
-// Get total damage reports
-$damage_query = "SELECT COUNT(*) as total FROM reports";
-$damage_result = mysqli_query($conn, $damage_query);
-$total_damage_reports = mysqli_fetch_assoc($damage_result)['total'];
+// Get dashboard statistics
+$stats = getAdminDashboardStats($conn);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -197,7 +162,7 @@ $total_damage_reports = mysqli_fetch_assoc($damage_result)['total'];
         }
 
         .main-content {
-            margin-top: 80px;
+            margin-top: 37px;
             padding: 20px;
         }
 
@@ -255,6 +220,202 @@ $total_damage_reports = mysqli_fetch_assoc($damage_result)['total'];
         .quick-actions a.logout-btn:hover {
             background: #c82333;
         }
+
+        /* Responsive styles */
+        @media screen and (max-width: 1024px) {
+            .card.stats {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .navbar {
+                padding: 10px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-left, .nav-right {
+                width: 100%;
+                justify-content: space-between;
+                margin: 5px 0;
+            }
+
+            .nav-brand {
+                font-size: 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .main-content {
+                margin-top: 120px;
+            }
+
+            .card.stats {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-box {
+                padding: 15px;
+            }
+
+            .stat-box i {
+                font-size: 1.5em;
+            }
+
+            .stat-box span {
+                font-size: 1.2em;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .notification-dropdown {
+                width: 90%;
+                right: 5%;
+                left: 5%;
+            }
+
+            .profile-dropdown {
+                width: 90%;
+                right: 5%;
+                left: 5%;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .navbar {
+                padding: 10px;
+            }
+
+            .nav-brand {
+                font-size: 18px;
+            }
+
+            .user-name {
+                display: none;
+            }
+
+            .main-content {
+                margin-top: -372px;
+                padding: 10px;
+            }
+
+            .dashboard h2 {
+                font-size: 1.5em;
+                text-align: center;
+            }
+
+            .stat-box {
+                padding: 10px;
+            }
+
+            .stat-box i {
+                font-size: 1.2em;
+            }
+
+            .stat-box span {
+                font-size: 1em;
+            }
+
+            .quick-actions a {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+
+        .notification-container {
+            position: relative;
+        }
+
+        .notification-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .notification-list {
+            padding: 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notification-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .notification-item {
+            padding: 15px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .notification-item:hover {
+            background: #f9f9f9;
+        }
+
+        .notification-item.unread {
+            background: #f0f7ff;
+        }
+
+        .notification-item .notification-type {
+            font-size: 12px;
+            color: #4CAF50;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .notification-item .notification-message {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.4;
+            margin: 5px 0;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .notification-item .notification-time {
+            color: #888;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .notification-item.booking { border-left: 4px solid #4CAF50; }
+        .notification-item.damage { border-left: 4px solid #ff4444; }
+        .notification-item.return { border-left: 4px solid #2196F3; }
+        .notification-item.system { border-left: 4px solid #9C27B0; }
     </style>
 </head>
 <body>
@@ -262,15 +423,19 @@ $total_damage_reports = mysqli_fetch_assoc($damage_result)['total'];
         <div class="nav-left">
             <a href="admin_dashboard.php" class="nav-brand">Car Rental Admin</a>
             <div class="nav-links"></div>
-            </div>
         </div>
         <div class="nav-right">
-            <div class="notification-icon" onclick="toggleNotifications()">
-                <i class='bx bxs-bell'></i>
+            <div class="notification-container">
+                <i class='bx bx-bell notification-icon' id="notificationIcon"></i>
                 <span class="notification-badge" id="notificationBadge">0</span>
-            </div>
-            <div class="notification-dropdown" id="notificationDropdown">
-                <div class="no-notifications">No new notifications</div>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <!-- Notifications will be loaded here -->
+                    </div>
+                </div>
             </div>
             <div class="profile-section">
                 <span class="user-name"><?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['last_name']); ?></span>
@@ -294,27 +459,27 @@ $total_damage_reports = mysqli_fetch_assoc($damage_result)['total'];
                 <div class="stat-box">
                     <i class='bx bxs-user'></i>
                     <strong>Total Users</strong>
-                    <span><?php echo $total_users; ?></span>
+                    <span><?php echo $stats['total_users']; ?></span>
                 </div>
                 <div class="stat-box">
                     <i class='bx bxs-calendar-check'></i>
                     <strong>Total Bookings</strong>
-                    <span><?php echo $total_bookings; ?></span>
+                    <span><?php echo $stats['total_bookings']; ?></span>
                 </div>
                 <div class="stat-box">
                     <i class='bx bxs-car'></i>
                     <strong>Total Cars</strong>
-                    <span><?php echo $total_cars; ?></span>
+                    <span><?php echo $stats['total_cars']; ?></span>
                 </div>
                 <div class="stat-box">
                     <i class='bx bxs-wallet'></i>
                     <strong>Revenue This Month</strong>
-                    <span>$<?php echo number_format($monthly_revenue, 2); ?></span>
+                    <span>$<?php echo number_format($stats['monthly_revenue'], 2); ?></span>
                 </div>
                 <div class="stat-box">
                     <i class='bx bxs-error'></i>
                     <strong>Damage Reports</strong>
-                    <span><?php echo $total_damage_reports; ?></span>
+                    <span><?php echo $stats['total_damage_reports']; ?></span>
                 </div>
             </div>
 
@@ -326,139 +491,12 @@ $total_damage_reports = mysqli_fetch_assoc($damage_result)['total'];
                     <a href="../controller/manage_bookings_controller.php">Manage Bookings</a>
                     <a href="../controller/admin_damage_report_controller.php">Damage Reports</a>
                     <a href="../controller/logout.php" class="logout-btn">Logout</a>
+                    <a href="forgot_password.php" class="logout-btn">Reset Password</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        let lastNotificationId = 0;
-        let notificationCheckInterval;
-
-        function toggleNotifications() {
-            const dropdown = document.getElementById('notificationDropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-            
-            if (dropdown.style.display === 'block') {
-                startNotificationCheck();
-            } else {
-                stopNotificationCheck();
-            }
-        }
-
-        function toggleProfileDropdown() {
-            const dropdown = document.getElementById('profileDropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function startNotificationCheck() {
-            notificationCheckInterval = setInterval(checkNewNotifications, 10000);
-        }
-
-        function stopNotificationCheck() {
-            clearInterval(notificationCheckInterval);
-        }
-
-        function checkNewNotifications() {
-            fetch('../controller/get_notifications.php?last_id=' + lastNotificationId)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.notifications.length > 0) {
-                        updateNotifications(data.notifications);
-                        updateNotificationBadge(data.unread_count);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        function updateNotifications(notifications) {
-            const dropdown = document.getElementById('notificationDropdown');
-            let html = '';
-
-            notifications.forEach(notification => {
-                if (notification.id > lastNotificationId) {
-                    lastNotificationId = notification.id;
-                }
-
-                html += `
-                    <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
-                         onclick="markAsRead(${notification.id})">
-                        <div class="notification-content">${notification.message}</div>
-                        <div class="notification-time">${notification.created_at}</div>
-                    </div>
-                `;
-            });
-
-            if (html === '') {
-                html = '<div class="no-notifications">No new notifications</div>';
-            }
-
-            dropdown.innerHTML = html;
-        }
-
-        function updateNotificationBadge(count) {
-            const badge = document.getElementById('notificationBadge');
-            if (count > 0) {
-                badge.style.display = 'block';
-                badge.textContent = count;
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
-        function markAsRead(notificationId) {
-            fetch('../controller/mark_notification_read.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'notification_id=' + notificationId
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const item = document.querySelector(`[onclick="markAsRead(${notificationId})"]`);
-                    if (item) {
-                        item.classList.remove('unread');
-                    }
-                    updateNotificationBadge(data.unread_count);
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        }
-
-        // Start checking for notifications when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            checkNewNotifications();
-        });
-
-        // Close dropdowns when clicking outside
-        window.onclick = function(event) {
-            if (!event.target.matches('.notification-icon') && !event.target.matches('.notification-icon *')) {
-                const notificationDropdown = document.getElementById('notificationDropdown');
-                if (notificationDropdown.style.display === 'block') {
-                    notificationDropdown.style.display = 'none';
-                    stopNotificationCheck();
-                }
-            }
-            if (!event.target.matches('.profile-icon') && !event.target.matches('.profile-icon *')) {
-                const profileDropdown = document.getElementById('profileDropdown');
-                if (profileDropdown.style.display === 'block') {
-                    profileDropdown.style.display = 'none';
-                }
-            }
-        }
-
-        // Set active nav link based on current page
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentPage = window.location.pathname.split('/').pop();
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => {
-                if (link.getAttribute('href') === currentPage) {
-                    link.classList.add('active');
-                }
-            });
-        });
-    </script>
+    <script src="../assets/js/admin_dashboard.js"></script>
 </body>
 </html>

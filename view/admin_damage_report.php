@@ -136,11 +136,42 @@ th {
     font-size: 16px;
     margin: 10px 0;
 }
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.back-btn {
+    position: absolute;
+    left: 0;
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.back-btn:hover {
+    background-color: #0056b3;
+}
+
+h1 {
+    width: 100%;
+    text-align: center;
+    margin: 0;
+}
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Damage Reports Admin Panel</h1>
+        <div class="header-actions">
+            <a href="admin_dashboard.php" class="back-btn">← Back to Dashboard</a>
+            <h1>Damage Reports Admin Panel</h1>
+        </div>
         <p>Total Reports: <span id="totalReports"><?php echo htmlspecialchars($total_reports); ?></span></p>
 
         <!-- Search Bar -->
@@ -155,6 +186,7 @@ th {
                 <tr>
                     <th>ID</th>
                     <th>Timestamp</th>
+                    <th>User Email</th>
                     <th>Canvas Image</th>
                     <th>Signature Image</th>
                     <th>Photos</th>
@@ -163,9 +195,10 @@ th {
             </thead>
             <tbody id="reportsBody">
                 <?php foreach ($reports as $report): ?>
-                    <tr>
+                    <tr data-report-id="<?php echo htmlspecialchars($report['id']); ?>">
                         <td><?php echo htmlspecialchars($report['id']); ?></td>
                         <td><?php echo htmlspecialchars($report['timestamp']); ?></td>
+                        <td><?php echo htmlspecialchars($report['email']); ?></td>
                         <td>
                             <img src="../<?php echo htmlspecialchars($report['canvas_image']); ?>" 
                                  alt="Canvas" class="thumbnail">
@@ -196,79 +229,6 @@ th {
         </table>
     </div>
 
-    <script>
-        function searchReports() {
-            const searchTerm = document.getElementById('searchInput').value;
-            
-            fetch(`../controller/admin_damage_report_controller.php?search=${encodeURIComponent(searchTerm)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        updateReportsTable(data.data);
-                    } else {
-                        alert('Error searching reports: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while searching reports');
-                });
-        }
-
-        function updateReportsTable(reports) {
-            const tbody = document.getElementById('reportsBody');
-            tbody.innerHTML = '';
-
-            reports.forEach(report => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${report.id}</td>
-                    <td>${report.timestamp}</td>
-                    <td>
-                        <img src="../${report.canvas_image}" alt="Canvas" class="thumbnail">
-                    </td>
-                    <td>
-                        <img src="../${report.signature_image}" alt="Signature" class="thumbnail">
-                    </td>
-                    <td>
-                        ${report.photo_images ? 
-                            report.photo_images.map(photo => 
-                                `<img src="../${photo}" alt="Photo" class="thumbnail">`
-                            ).join('') : 
-                            'No photos'}
-                    </td>
-                    <td>
-                        <a href="view_Admin_dmg_report.php?id=${report.id}" class="btn view-btn">View</a>
-                        <button onclick="deleteReport(${report.id})" class="btn delete-btn">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function deleteReport(reportId) {
-            if (confirm('Are you sure you want to delete this report?')) {
-                fetch('../controller/admin_damage_report_controller.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `action=delete&report_id=${reportId}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error deleting report: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the report');
-                });
-            }
-        }
-    </script>
+    <script src="../assets/js/admin_dmg_report.js"></script>
 </body>
 </html>

@@ -343,67 +343,6 @@ if (!isset($booking['start_date']) || !isset($booking['end_date']) || !isset($bo
         </div>
     </main>
 
-    <script>
-        let selectedPaymentMethod = null;
-        let appliedPromoCode = null;
-        let discountAmount = 0;
-
-        function selectPaymentMethod(element) {
-            // Remove selected class from all payment methods
-            document.querySelectorAll('.payment-method').forEach(method => {
-                method.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked payment method
-            element.classList.add('selected');
-            selectedPaymentMethod = element.querySelector('h4').textContent;
-            document.getElementById('payment-method').value = selectedPaymentMethod;
-        }
-
-        function applyPromoCode() {
-            const promoCode = document.getElementById('promo-code').value;
-            
-            // Here you would typically make an AJAX call to validate the promo code
-            // For now, we'll use a simple example
-            if (promoCode === 'WELCOME10') {
-                discountAmount = <?php echo $booking['subtotal']; ?> * 0.1; // 10% discount
-                document.getElementById('discount-amount').textContent = '-$' + discountAmount.toFixed(2);
-                document.getElementById('total-amount').textContent = 
-                    '$' + (<?php echo $booking['subtotal']; ?> - discountAmount).toFixed(2);
-                document.getElementById('promo-message').textContent = 'Promo code applied successfully!';
-                document.getElementById('promo-message').style.color = '#2ecc71';
-                appliedPromoCode = promoCode;
-                document.getElementById('promo-code-input').value = promoCode;
-            } else {
-                document.getElementById('promo-message').textContent = 'Invalid promo code';
-                document.getElementById('promo-message').style.color = '#e74c3c';
-            }
-        }
-
-        document.getElementById('checkout-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (!selectedPaymentMethod) {
-                alert('Please select a payment method');
-                return;
-            }
-            this.submit();
-        });
-
-        // Add this new function for the dropdown
-        function toggleDropdown() {
-            const dropdown = document.getElementById('userDropdown');
-            dropdown.classList.toggle('show');
-        }
-
-        // Close dropdown when clicking outside
-        window.onclick = function(event) {
-            if (!event.target.matches('.user-icon') && !event.target.matches('.user-icon *')) {
-                const dropdown = document.getElementById('userDropdown');
-                if (dropdown.classList.contains('show')) {
-                    dropdown.classList.remove('show');
-                }
-            }
-        }
-    </script>
+    <script src="../assets/js/checkout.js"></script>
 </body>
 </html> 

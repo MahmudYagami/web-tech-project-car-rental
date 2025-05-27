@@ -79,27 +79,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $result = createUser($conn, $email, $password, $firstName, $lastName, 'user');
         
         if ($result) {
-            // Insert additional user details into user_details table
-            $sql = "INSERT INTO user_details (user_id, mobile, country, address, date_of_birth) 
-                    SELECT user_id, ?, ?, ?, ? FROM users WHERE email = ?";
-            $stmt = mysqli_prepare($conn, $sql);
+            // Insert additional user details using the model function
+            $detailsResult = createUserDetails($conn, $email, $mobile, $country, $address, $dob);
             
-            if ($stmt) {
-                mysqli_stmt_bind_param($stmt, "sssss", $mobile, $country, $address, $dob, $email);
-                $detailsResult = mysqli_stmt_execute($stmt);
-                mysqli_stmt_close($stmt);
-                
-                if ($detailsResult) {
-                    $_SESSION['register_success'] = "Registration successful! You can now login with your credentials.";
-                    mysqli_close($conn);
-                    header("Location: ../view/login.php");
-                    exit();
-                } else {
-                    $_SESSION['register_error'] = "There was an error creating your account. Please try again.";
-                    mysqli_close($conn);
-                    header("Location: ../view/register.php");
-                    exit();
-                }
+            if ($detailsResult['success']) {
+                $_SESSION['register_success'] = "Registration successful! You can now login with your credentials.";
+                mysqli_close($conn);
+                header("Location: ../view/login.php");
+                exit();
             } else {
                 $_SESSION['register_error'] = "There was an error creating your account. Please try again.";
                 mysqli_close($conn);

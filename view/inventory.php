@@ -78,6 +78,22 @@ require_once '../controller/inventory_controller.php';
             color: white;
         }
 
+        /* Loading and No Results Styles */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .no-results {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+
         /* Search Section Styles */
         .search-section {
             margin: 20px 0;
@@ -95,14 +111,25 @@ require_once '../controller/inventory_controller.php';
             display: flex;
             gap: 10px;
             align-items: center;
+            position: relative;
         }
 
         .search-inputs input[type="text"] {
             flex: 1;
             padding: 10px 15px;
+            padding-right: 40px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 120px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            pointer-events: none;
         }
 
         .search-inputs select {
@@ -204,10 +231,11 @@ require_once '../controller/inventory_controller.php';
         
         <!-- Search Section -->
         <div class="search-section">
-            <form action="" method="GET" class="search-form">
+            <form action="" method="GET" class="search-form" id="searchForm">
                 <div class="search-inputs">
-                    <input type="text" name="search" placeholder="Search by brand or model..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-                    <select name="filter">
+                    <input type="text" name="search" id="searchInput" placeholder="Search by brand or model..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                    <i class="fas fa-search search-icon"></i>
+                    <select name="filter" id="filterSelect">
                         <option value="all" <?php echo (!isset($_GET['filter']) || $_GET['filter'] == 'all') ? 'selected' : ''; ?>>All</option>
                         <option value="brand" <?php echo (isset($_GET['filter']) && $_GET['filter'] == 'brand') ? 'selected' : ''; ?>>Brand</option>
                         <option value="model" <?php echo (isset($_GET['filter']) && $_GET['filter'] == 'model') ? 'selected' : ''; ?>>Model</option>
@@ -221,7 +249,10 @@ require_once '../controller/inventory_controller.php';
             </form>
         </div>
 
-        <div class="car-grid">
+        <div class="loading">Searching...</div>
+        <div class="no-results">No cars found matching your search criteria.</div>
+
+        <div class="car-grid" id="carGrid">
             <?php if ($cars && count($cars) > 0): ?>
                 <?php foreach ($cars as $car): ?>
                     <div class="car-card">
@@ -249,21 +280,5 @@ require_once '../controller/inventory_controller.php';
     </main>
 
     <script src="../assets/js/inventory.js"></script>
-    <script>
-        function toggleDropdown() {
-            const dropdown = document.getElementById('userDropdown');
-            dropdown.classList.toggle('show');
-        }
-
-        // Close dropdown when clicking outside
-        window.onclick = function(event) {
-            if (!event.target.matches('.user-icon') && !event.target.matches('.user-icon *')) {
-                const dropdown = document.getElementById('userDropdown');
-                if (dropdown.classList.contains('show')) {
-                    dropdown.classList.remove('show');
-                }
-            }
-        }
-    </script>
 </body>
 </html> 

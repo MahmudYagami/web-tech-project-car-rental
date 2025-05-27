@@ -156,27 +156,6 @@ function processBooking($conn, $userId, $bookingDetails, $paymentMethod, $promoC
         
         error_log("Car status updated successfully");
         
-        // Create notification
-        if ($bookingId) {
-            $user = getUserById($conn, $userId);
-            $car = getCarById($conn, $bookingDetails['car_id']);
-            
-            $message = sprintf(
-                "New booking from %s %s for %s from %s to %s",
-                $user['first_name'],
-                $user['last_name'],
-                $car['model'],
-                date('Y-m-d', strtotime($bookingDetails['start_date'])),
-                date('Y-m-d', strtotime($bookingDetails['end_date']))
-            );
-            
-            $notification_sql = "INSERT INTO notifications (message) VALUES (?)";
-            $notification_stmt = mysqli_prepare($conn, $notification_sql);
-            mysqli_stmt_bind_param($notification_stmt, "s", $message);
-            mysqli_stmt_execute($notification_stmt);
-            mysqli_stmt_close($notification_stmt);
-        }
-        
         // Commit the transaction
         mysqli_commit($conn);
         return ['success' => true, 'booking_id' => $bookingId];

@@ -222,7 +222,7 @@ unset($_SESSION['user_bookings_data']);
         <?php else: ?>
             <?php foreach ($bookings as $booking): ?>
                 <div class="booking-card">
-                    <img src="../<?php echo htmlspecialchars($booking['image_url']); ?>" alt="Car Image" class="car-image">
+                    <img src="<?php echo htmlspecialchars($booking['image_url']); ?>" alt="Car Image" class="car-image">
                     <div class="booking-details">
                         <div class="car-info">
                             <h2><?php echo htmlspecialchars($booking['brand'] . ' ' . $booking['model']); ?></h2>

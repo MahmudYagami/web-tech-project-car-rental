@@ -78,4 +78,4 @@ $_SESSION['cars'] = $cars_result['data'];
 // For initial page load, redirect to view
 header('Location: ../view/manage_cars.php');
 exit();
-?> 
+?>

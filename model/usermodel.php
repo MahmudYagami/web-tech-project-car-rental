@@ -1,6 +1,6 @@
 <?php
 function getUserByEmail($conn, $email) {
-    $sql = "SELECT user_id, email, password, first_name, last_name, role FROM users WHERE email = ?";
+    $sql = "SELECT user_id, email, password, first_name, last_name, role, mobile, address FROM users WHERE email = ?";
     $stmt = mysqli_prepare($conn, $sql);
     
     if (!$stmt) {
@@ -495,31 +495,33 @@ function checkEmailAvailability($conn, $email, $current_user_id) {
 }
 
 function updateUserProfile($conn, $user_id, $profile_data) {
-    // Sanitize input data
-    $profile_data = array_map('trim', $profile_data);
-    
     // Validate profile data
     $validation = validateProfileData($profile_data);
     if (!$validation['success']) {
         return $validation;
     }
     
-    // Check email availability if email is being changed
+    // Get current user data
     $current_user = getUserById($conn, $user_id);
-    if ($current_user && $profile_data['email'] !== $current_user['email']) {
+    if (!$current_user) {
+        return ['success' => false, 'message' => 'User not found'];
+    }
+    
+    // Check if email is being changed
+    if ($profile_data['email'] !== $current_user['email']) {
         $email_check = checkEmailAvailability($conn, $profile_data['email'], $user_id);
         if (!$email_check['success']) {
             return $email_check;
         }
     }
     
-    // Update user data
+    // Update user data in users table
     $update_sql = "UPDATE users SET 
                    first_name = ?, 
                    last_name = ?, 
-                   email = ?, 
-                   mobile = ?, 
-                   address = ? 
+                   email = ?,
+                   mobile = ?,
+                   address = ?
                    WHERE user_id = ?";
     
     $stmt = mysqli_prepare($conn, $update_sql);
@@ -543,6 +545,7 @@ function updateUserProfile($conn, $user_id, $profile_data) {
     }
     
     mysqli_stmt_close($stmt);
+    
     return [
         'success' => true, 
         'message' => 'Profile updated successfully',
@@ -577,7 +580,7 @@ function validateLicenseFile($file) {
 
 function handleLicenseUpload($file, $user_id) {
     // Create upload directory if it doesn't exist
-    $upload_dir = '../uploads/licenses/';
+    $upload_dir = '../assets/uploads/';
     if (!file_exists($upload_dir)) {
         if (!mkdir($upload_dir, 0777, true)) {
             return ['success' => false, 'message' => 'Failed to create upload directory'];
@@ -597,7 +600,7 @@ function handleLicenseUpload($file, $user_id) {
     return [
         'success' => true,
         'file_path' => $upload_path,
-        'relative_path' => 'uploads/licenses/' . $new_filename
+        'relative_path' => 'assets/uploads/' . $new_filename
     ];
 }
 
@@ -686,5 +689,24 @@ function getUserBookingHistory($conn, $user_id) {
     
     mysqli_stmt_close($stmt);
     return $bookings;
+}
+
+function createUserDetails($conn, $email, $mobile, $country, $address, $dob) {
+    $sql = "INSERT INTO user_details (user_id, mobile, country, address, date_of_birth) 
+            SELECT user_id, ?, ?, ?, ? FROM users WHERE email = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    
+    if (!$stmt) {
+        return ['success' => false, 'message' => 'Failed to prepare statement'];
+    }
+
+    mysqli_stmt_bind_param($stmt, "sssss", $mobile, $country, $address, $dob, $email);
+    $result = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    
+    return [
+        'success' => $result,
+        'message' => $result ? 'User details created successfully' : 'Failed to create user details'
+    ];
 }
 ?> 

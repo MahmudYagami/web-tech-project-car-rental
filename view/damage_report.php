@@ -1,5 +1,12 @@
 <?php
+session_start();
 require_once '../model/db.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -77,7 +84,26 @@ input[type="file"] {
 <body>
     <div class="container">
         <h1>Vehicle Damage Report</h1>
-        <form id="reportForm" action="..\controller\dmg_report_check.php" method="POST" enctype="multipart/form-data">
+        
+        <?php if (isset($_SESSION['success'])): ?>
+            <div class="alert alert-success" style="background-color: #d4edda; color: #155724; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+                <?php 
+                    echo htmlspecialchars($_SESSION['success']);
+                    unset($_SESSION['success']);
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+                <?php 
+                    echo htmlspecialchars($_SESSION['error']);
+                    unset($_SESSION['error']);
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <form id="reportForm" action="../controller/dmg_report_check.php" method="POST" enctype="multipart/form-data">
             <!-- Vehicle Diagram Canvas -->
             <div class="section">
                 <h2>Mark Damage</h2>

@@ -127,13 +127,43 @@ $bookings_result = getUserBookingHistory($conn, $_SESSION['user_id']);
         .status-cancelled {
             color: #f44336;
         }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        select.form-control {
+            background-color: white;
+            cursor: pointer;
+        }
+
+        #message {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="profile-header">
             <h1>Customer Profile</h1>
-            <a href="../controller/edit_profile_controller.php" class="edit-btn">Edit Profile</a>
+            <div class="button-group">
+                <a href="user_dashboard.php" class="edit-btn" style="background-color: #2196F3; margin-right: 10px;">Back to Dashboard</a>
+                <a href="../controller/edit_profile_controller.php" class="edit-btn">Edit Profile</a>
+            </div>
         </div>
 
         <div class="profile-section">
@@ -149,7 +179,7 @@ $bookings_result = getUserBookingHistory($conn, $_SESSION['user_id']);
                 </div>
                 <div class="profile-item">
                     <label>Mobile</label>
-                    <span><?php echo htmlspecialchars($user['mobile'] ?? 'Not set'); ?></span>
+                    <span><?php echo htmlspecialchars($user['mobile']); ?></span>
                 </div>
                 <div class="profile-item">
                     <label>Address</label>
@@ -162,12 +192,34 @@ $bookings_result = getUserBookingHistory($conn, $_SESSION['user_id']);
             <h2>Driver's License</h2>
             <div class="license-upload">
                 <?php if (isset($user['license_image'])): ?>
-                    <img src="<?php echo htmlspecialchars($user['license_image']); ?>" alt="Driver's License" style="max-width: 300px;">
+                    <div class="license-image-container">
+                        <img src="../assets/uploads/license_4_1748355732.png?>" 
+                             alt="Driver's License" 
+                             style="max-width: 300px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    </div>
                 <?php else: ?>
                     <form action="../controller/upload_license.php" method="POST" enctype="multipart/form-data">
                         <input type="file" name="license" accept="image/*" required>
                         <button type="submit" class="edit-btn">Upload License</button>
                     </form>
+                <?php endif; ?>
+                
+                <?php if (isset($_SESSION['license_success'])): ?>
+                    <div class="success-message" style="color: #4CAF50; margin-top: 10px;">
+                        <?php 
+                            echo htmlspecialchars($_SESSION['license_success']);
+                            unset($_SESSION['license_success']);
+                        ?>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if (isset($_SESSION['license_error'])): ?>
+                    <div class="error-message" style="color: #f44336; margin-top: 10px;">
+                        <?php 
+                            echo htmlspecialchars($_SESSION['license_error']);
+                            unset($_SESSION['license_error']);
+                        ?>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -205,17 +257,6 @@ $bookings_result = getUserBookingHistory($conn, $_SESSION['user_id']);
         </div>
     </div>
 
-    <script>
-        // Add any JavaScript for dynamic features here
-        document.addEventListener('DOMContentLoaded', function() {
-            // Example: Auto-save preferences when changed
-            const preferenceInputs = document.querySelectorAll('.preferences-section input');
-            preferenceInputs.forEach(input => {
-                input.addEventListener('change', function() {
-                    // Add AJAX call to save preferences
-                });
-            });
-        });
-    </script>
+    <script src="../assets/js/customer_profile.js"></script>
 </body>
 </html>

@@ -1,14 +1,14 @@
 <?php
 require_once 'db.php';
 
-function saveDamageReport($conn, $canvas_name, $sign_name, $photos_json) {
+function saveDamageReport($conn, $user_id, $canvas_name, $sign_name, $photos_json) {
     $time = date('Y-m-d H:i:s');
     
-    $query = "INSERT INTO reports (timestamp, canvas_image, signature_image, photo_images) VALUES (?, ?, ?, ?)";
+    $query = "INSERT INTO reports (user_id, timestamp, canvas_image, signature_image, photo_images) VALUES (?, ?, ?, ?, ?)";
     $stmt = mysqli_prepare($conn, $query);
     
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "ssss", $time, $canvas_name, $sign_name, $photos_json);
+        mysqli_stmt_bind_param($stmt, "issss", $user_id, $time, $canvas_name, $sign_name, $photos_json);
         
         if (mysqli_stmt_execute($stmt)) {
             mysqli_stmt_close($stmt);
@@ -83,11 +83,13 @@ function deleteDamageReport($conn, $id) {
 function searchDamageReports($conn, $search_term) {
     $search_term = mysqli_real_escape_string($conn, $search_term);
     
-    $query = "SELECT id, timestamp, canvas_image, signature_image, photo_images 
-              FROM reports 
-              WHERE id LIKE '%$search_term%' 
-              OR DATE(timestamp) LIKE '%$search_term%' 
-              ORDER BY timestamp DESC";
+    $query = "SELECT r.id, r.timestamp, r.canvas_image, r.signature_image, r.photo_images, u.email 
+              FROM reports r 
+              JOIN users u ON r.user_id = u.user_id 
+              WHERE r.id LIKE '%$search_term%' 
+              OR DATE(r.timestamp) LIKE '%$search_term%'
+              OR u.email LIKE '%$search_term%'
+              ORDER BY r.timestamp DESC";
               
     $result = mysqli_query($conn, $query);
     
@@ -172,9 +174,10 @@ function getTotalReports($conn) {
 }
 
 function getAllDamageReports($conn) {
-    $query = "SELECT id, timestamp, canvas_image, signature_image, photo_images 
-              FROM reports 
-              ORDER BY timestamp DESC";
+    $query = "SELECT r.id, r.timestamp, r.canvas_image, r.signature_image, r.photo_images, u.email 
+              FROM reports r 
+              JOIN users u ON r.user_id = u.user_id 
+              ORDER BY r.timestamp DESC";
               
     $result = mysqli_query($conn, $query);
     

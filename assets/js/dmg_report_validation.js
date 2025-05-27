@@ -106,7 +106,18 @@ photoInput.addEventListener('change', () => {
 });
 
 // Form Submission
-document.getElementById('reportForm').addEventListener('submit', () => {
-    document.getElementById('canvasImage').value = vehicleCanvas.toDataURL('image/png');
-    document.getElementById('signatureImage').value = signatureCanvas.toDataURL('image/png');
+document.getElementById('reportForm').addEventListener('submit', function(e) {
+    // Prevent default form submission
+    e.preventDefault();
+    
+    // Convert canvas images to base64
+    const canvasImage = vehicleCanvas.toDataURL('image/png');
+    const signatureImage = signatureCanvas.toDataURL('image/png');
+    
+    // Set the hidden input values
+    document.getElementById('canvasImage').value = canvasImage;
+    document.getElementById('signatureImage').value = signatureImage;
+    
+    // Submit the form
+    this.submit();
 });

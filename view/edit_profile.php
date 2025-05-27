@@ -168,18 +168,5 @@ unset($_SESSION['edit_profile_data']);
             </form>
         </div>
     </div>
-
-    <script>
-        // Add any JavaScript for dynamic features here
-        document.addEventListener('DOMContentLoaded', function() {
-            // Example: Form validation
-            const forms = document.querySelectorAll('form');
-            forms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    // Add your validation logic here
-                });
-            });
-        });
-    </script>
 </body>
 </html>
